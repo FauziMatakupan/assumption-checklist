@@ -1,0 +1,2919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statistical Assumption Checklist — Free Interactive Research Tool</title>
+<meta name="description" content="Interactive diagnostic checklist for 17 common statistical tests. Check empirical assumptions, verify practical thresholds, and review decision trees if an assumption is violated. Free, client-side, saves progress locally.">
+<style>
+:root {
+  --bg: #0f172a;
+  --card: #1e293b;
+  --card-border: #334155;
+  --card-hover: #26354a;
+  --acc: #38bdf8;
+  --acc-dim: rgba(56, 189, 248, 0.12);
+  --acc-hover: #7dd3fc;
+  --ok: #4ade80;
+  --ok-dim: rgba(74, 222, 128, 0.12);
+  --warn: #fbbf24;
+  --warn-dim: rgba(251, 191, 36, 0.12);
+  --txt: #e2e8f0;
+  --mut: #94a3b8;
+  --subtle: #64748b;
+  --danger: #f87171;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--txt);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.2rem 0.8rem;
+  line-height: 1.5;
+}
+
+.wrap {
+  max-width: 820px;
+  width: 100%;
+}
+
+/* Header */
+.top-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.2rem;
+  font-size: 0.88rem;
+}
+.back-link {
+  color: var(--acc);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 500;
+  padding: 0.35rem 0.65rem;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+.back-link:hover {
+  background: #253347;
+  border-color: var(--acc);
+}
+.tool-tag {
+  background: var(--acc-dim);
+  color: var(--acc);
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin-bottom: 0.4rem;
+  letter-spacing: -0.01em;
+}
+.sub {
+  color: var(--mut);
+  font-size: 0.95rem;
+  margin-bottom: 1.4rem;
+  line-height: 1.55;
+}
+
+/* Category Filter Pills */
+.cat-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+}
+.cat-pill {
+  background: #152238;
+  border: 1px solid var(--card-border);
+  color: var(--mut);
+  padding: 0.4rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.cat-pill:hover {
+  color: var(--txt);
+  border-color: var(--acc);
+}
+.cat-pill.active {
+  background: var(--acc);
+  color: #0f172a;
+  border-color: var(--acc);
+  font-weight: 600;
+}
+
+/* Selector Card */
+.selector-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 1.1rem;
+  margin-bottom: 1.2rem;
+}
+.picker-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.picker-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--acc);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.styled-select {
+  width: 100%;
+  background: #0f172a;
+  border: 1px solid var(--card-border);
+  color: var(--txt);
+  padding: 0.75rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.96rem;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.styled-select:focus {
+  border-color: var(--acc);
+}
+.styled-select optgroup {
+  background: #1e293b;
+  color: var(--acc);
+  font-weight: 600;
+}
+.styled-select option {
+  background: #0f172a;
+  color: var(--txt);
+}
+
+/* Test Summary Banner Card */
+.test-banner {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 1.3rem;
+  margin-bottom: 1.2rem;
+  position: relative;
+}
+.banner-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.8rem;
+  margin-bottom: 0.4rem;
+}
+.test-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+.cat-badge {
+  background: #0f172a;
+  border: 1px solid var(--card-border);
+  color: var(--acc);
+  font-size: 0.75rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  white-space: nowrap;
+  font-weight: 500;
+}
+.test-desc {
+  color: var(--mut);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  margin-bottom: 0.8rem;
+}
+.companion-hint {
+  font-size: 0.82rem;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.08);
+  padding: 0.45rem 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 1.1rem;
+  border-left: 3px solid var(--acc);
+}
+
+/* Progress bar */
+.prog-wrapper {
+  margin-top: 0.9rem;
+}
+.prog-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.84rem;
+  color: var(--mut);
+  margin-bottom: 0.45rem;
+}
+.prog-pct {
+  font-weight: 600;
+  color: var(--acc);
+}
+.prog-pct.all-done {
+  color: var(--ok);
+}
+.prog-track {
+  height: 8px;
+  background: #0f172a;
+  border-radius: 9999px;
+  overflow: hidden;
+  border: 1px solid #334155;
+}
+.prog-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #38bdf8, #4ade80);
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+/* Action Controls Bar */
+.action-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #334155;
+}
+.btn {
+  padding: 0.55rem 1rem;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.btn-primary {
+  background: var(--acc);
+  color: #0f172a;
+}
+.btn-primary:hover {
+  background: var(--acc-hover);
+}
+.btn-secondary {
+  background: #0f172a;
+  color: var(--txt);
+  border-color: var(--card-border);
+}
+.btn-secondary:hover {
+  border-color: var(--acc);
+  color: var(--acc);
+}
+.btn-reset {
+  background: transparent;
+  color: var(--subtle);
+  border-color: transparent;
+  margin-left: auto;
+}
+.btn-reset:hover {
+  color: var(--danger);
+}
+
+/* Checklist Items */
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.item-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 1.1rem;
+  transition: border-color 0.15s, background 0.15s;
+}
+.item-card.checked {
+  border-color: rgba(74, 222, 128, 0.4);
+  background: #17263c;
+}
+.item-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+.custom-chk {
+  margin-top: 0.15rem;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--card-border);
+  background: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+.item-card.checked .custom-chk {
+  background: var(--ok);
+  border-color: var(--ok);
+  color: #0f172a;
+}
+.custom-chk svg {
+  display: none;
+  width: 14px;
+  height: 14px;
+}
+.item-card.checked .custom-chk svg {
+  display: block;
+}
+.item-title-block {
+  flex: 1;
+}
+.item-sub-badge {
+  font-size: 0.72rem;
+  color: var(--mut);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.15rem;
+}
+.item-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  line-height: 1.35;
+}
+.item-card.checked .item-title {
+  color: #f8fafc;
+}
+.status-pill {
+  font-size: 0.72rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.status-pill.pending {
+  background: #253347;
+  color: var(--mut);
+}
+.status-pill.verified {
+  background: var(--ok-dim);
+  color: var(--ok);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+/* Item details body */
+.item-body {
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(51, 65, 85, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  font-size: 0.9rem;
+}
+.detail-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.sec-lbl {
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.sec-lbl.how-lbl { color: #38bdf8; }
+.sec-lbl.thresh-lbl { color: #fbbf24; }
+.sec-lbl.remedy-lbl { color: #f472b6; }
+.sec-val {
+  color: var(--txt);
+  line-height: 1.5;
+  background: #0f172a;
+  padding: 0.65rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid #28374d;
+}
+
+/* Remedy Select Box */
+.remedy-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: #141f33;
+  border: 1px solid #2c3e59;
+  border-radius: 8px;
+  padding: 0.85rem;
+}
+.remedy-select {
+  width: 100%;
+  background: #0f172a;
+  border: 1px solid var(--card-border);
+  color: var(--txt);
+  padding: 0.55rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.86rem;
+  outline: none;
+  cursor: pointer;
+}
+.remedy-select:focus {
+  border-color: var(--acc);
+}
+.remedy-detail-card {
+  margin-top: 0.3rem;
+  background: #0d1525;
+  border: 1px solid #23344d;
+  border-radius: 6px;
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.remedy-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.remedy-row-title {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--mut);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.remedy-row-text {
+  color: #e2e8f0;
+  line-height: 1.45;
+}
+.thesis-quote {
+  font-style: italic;
+  color: #7dd3fc;
+  background: rgba(56, 189, 248, 0.06);
+  padding: 0.45rem 0.65rem;
+  border-radius: 4px;
+  border-left: 2px solid var(--acc);
+}
+
+/* Preview Modal / Drawer */
+.modal-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.modal-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.modal-box {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 650px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+.modal-header {
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-header h3 {
+  font-size: 1.15rem;
+  color: #f8fafc;
+}
+.modal-close {
+  background: transparent;
+  border: none;
+  color: var(--mut);
+  font-size: 1.3rem;
+  cursor: pointer;
+  line-height: 1;
+}
+.modal-close:hover { color: var(--txt); }
+.modal-body {
+  padding: 1.2rem;
+  overflow-y: auto;
+}
+.summary-text-area {
+  width: 100%;
+  height: 280px;
+  background: #0f172a;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  color: #cbd5e1;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.82rem;
+  padding: 0.85rem;
+  line-height: 1.5;
+  resize: vertical;
+  white-space: pre-wrap;
+}
+.modal-footer {
+  padding: 0.9rem 1.2rem;
+  border-top: 1px solid var(--card-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: #0369a1;
+  color: #ffffff;
+  padding: 0.6rem 1.2rem;
+  border-radius: 9999px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  opacity: 0;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+/* Footer */
+.foot {
+  margin-top: 2rem;
+  font-size: 0.85rem;
+  color: var(--mut);
+  text-align: center;
+  line-height: 1.6;
+  border-top: 1px solid #28374d;
+  padding-top: 1.5rem;
+  width: 100%;
+}
+.foot a {
+  color: var(--acc);
+  text-decoration: none;
+}
+.foot a:hover {
+  text-decoration: underline;
+}
+.foot .guide-banner {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  margin-bottom: 1.2rem;
+  text-align: left;
+}
+.foot .guide-title {
+  color: #f8fafc;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 0.3rem;
+}
+.disclaimer-text {
+  font-size: 0.78rem;
+  color: var(--subtle);
+  margin-top: 0.8rem;
+}
+
+/* Utilities */
+.hidden { display: none !important; }
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  body { padding: 0.8rem 0.5rem; }
+  h1 { font-size: 1.35rem; }
+  .test-title { font-size: 1.15rem; }
+  .cat-pill { padding: 0.3rem 0.65rem; font-size: 0.78rem; }
+  .action-bar { flex-direction: column; }
+  .btn-reset { margin-left: 0; }
+  .btn { width: 100%; justify-content: center; }
+  .banner-top { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!-- Top Nav & Badge -->
+  <div class="top-nav">
+    <a href="https://fauzimatakupan.github.io/stat-test-selector/" class="back-link">
+      <span>←</span>
+      <span>Stat Test Selector</span>
+    </a>
+    <span class="tool-tag">Free Companion Tool #2</span>
+  </div>
+
+  <!-- Header -->
+  <h1>Statistical Assumption Checklist</h1>
+  <p class="sub">Verify empirical data requirements before running your analysis. Each test includes concrete diagnostic steps, conventional thresholds, and actionable decision paths if an assumption is violated. Saves your progress locally in your browser.</p>
+
+  <!-- Category Pills Filter -->
+  <div class="cat-pills" id="cat-pills">
+    <button class="cat-pill active" data-cat="all">All Tests</button><button class="cat-pill " data-cat="t-tests">t-Tests (3)</button><button class="cat-pill " data-cat="anova-family">ANOVA & Mixed (2)</button><button class="cat-pill " data-cat="non-parametric">Non-Parametric (5)</button><button class="cat-pill " data-cat="regression">Regression (5)</button><button class="cat-pill " data-cat="categorical">Categorical (2)</button>
+  </div>
+
+  <!-- Test Selector -->
+  <div class="selector-card">
+    <div class="picker-row">
+      <label for="test-select" class="picker-label">Choose Statistical Test (17 available):</label>
+      <select id="test-select" class="styled-select">
+        <optgroup label="t-Tests">
+          <option value="ttest1">One-Sample t-Test</option>
+          <option value="ttest" selected>Independent-Samples t-Test</option>
+          <option value="tpaired">Paired-Samples t-Test</option>
+        </optgroup>
+        <optgroup label="ANOVA & Mixed Models">
+          <option value="anova">One-Way ANOVA</option>
+          <option value="mixed">Linear Mixed-Effects Model (LMM)</option>
+        </optgroup>
+        <optgroup label="Non-Parametric Tests">
+          <option value="mannwhitney">Mann-Whitney U Test</option>
+          <option value="wilcoxon">Wilcoxon Signed-Rank Test (Paired)</option>
+          <option value="wilcoxon1">One-Sample Wilcoxon Signed-Rank Test</option>
+          <option value="kruskal">Kruskal-Wallis H Test</option>
+          <option value="spearman">Spearman Rank Correlation</option>
+        </optgroup>
+        <optgroup label="Regression Models">
+          <option value="slr">Simple Linear Regression</option>
+          <option value="mlr">Multiple Linear Regression</option>
+          <option value="logreg">Binary Logistic Regression</option>
+          <option value="poisson">Poisson Regression</option>
+          <option value="mnlogit">Multinomial Logistic Regression</option>
+        </optgroup>
+        <optgroup label="Categorical & Proportions">
+          <option value="chisq">Chi-Square Test of Independence (r × c)</option>
+          <option value="mcnemar">McNemar's Test</option>
+        </optgroup>
+      </select>
+    </div>
+  </div>
+
+  <!-- Current Test Banner -->
+  <div class="test-banner" id="test-banner">
+    <div class="banner-top">
+      <h2 class="test-title" id="t-name"></h2>
+      <span class="cat-badge" id="t-cat"></span>
+    </div>
+    <p class="test-desc" id="t-desc"></p>
+    <div class="companion-hint" id="t-companion"></div>
+
+    <div class="prog-wrapper">
+      <div class="prog-meta">
+        <span>Verified assumptions: <strong id="prog-count">0 of 5</strong></span>
+        <span class="prog-pct" id="prog-pct">0%</span>
+      </div>
+      <div class="prog-track">
+        <div class="prog-fill" id="prog-bar"></div>
+      </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="action-bar">
+      <button class="btn btn-primary" id="btn-copy-summary">
+        <span>📋</span>
+        <span>Copy Thesis Summary</span>
+      </button>
+      <button class="btn btn-secondary" id="btn-view-summary">
+        <span>👁️</span>
+        <span>View Formatted Summary</span>
+      </button>
+      <button class="btn btn-reset" id="btn-reset-test" title="Reset checks and remedies for this test">
+        <span>↺</span>
+        <span>Reset this test</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Checklist Items List -->
+  <div class="items-list" id="items-container"></div>
+
+  <!-- Footer -->
+  <footer class="foot">
+    <div class="guide-banner">
+      <div class="guide-title">Looking for complete reporting templates and APA 7 sentence structures?</div>
+      <p style="color:var(--mut);font-size:0.88rem;margin-bottom:0.5rem">Pair this checklist with our companion selector and thesis survival guide.</p>
+      <p>
+        <a href="https://fauzimatakupan.github.io/stat-test-selector/" target="_blank" rel="noopener">← Statistical Test Selector (Free Tool #1)</a>
+        &nbsp;•&nbsp;
+        <a href="https://github.com/FauziMatakupan/stat-test-selector" target="_blank" rel="noopener">GitHub Project Repository</a>
+      </p>
+    </div>
+    <p>Author: <strong>F. Matakupan</strong> • Built for empirical thesis and academic research workflows.</p>
+    <p class="disclaimer-text">Educational tool, not statistical or medical advice — not a substitute for formal consultation with your thesis supervisor, academic advisor, or an accredited statistician. Diagnostic rules of thumb (e.g., VIF &lt; 5, expected cell counts ≥ 5) are conventional heuristics rather than absolute binary truths.</p>
+    <p style="margin-top:0.6rem;font-size:0.75rem;color:var(--subtle)">Zero trackers • Zero cookies • 100% client-side browser execution</p>
+  </footer>
+</div>
+
+<!-- Formatted Summary Modal -->
+<div class="modal-backdrop" id="summary-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="modal-title">Statistical Assumption Summary</h3>
+      <button class="modal-close" id="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.85rem;color:var(--mut);margin-bottom:0.6rem">You can copy this markdown text and paste it into your thesis appendix, research notes, or supervisory consultation log:</p>
+      <textarea class="summary-text-area" id="summary-textarea" readonly></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="modal-btn-close">Close</button>
+      <button class="btn btn-primary" id="modal-btn-copy">Copy to Clipboard</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Message -->
+<div class="toast" id="toast">
+  <span>✓</span>
+  <span id="toast-msg">Copied to clipboard!</span>
+</div>
+
+<script>
+const DB = [
+  {
+    "id": "ttest1",
+    "category": "t-Tests",
+    "catId": "t-tests",
+    "name": "One-Sample t-Test",
+    "desc": "Compares the sample mean of a single continuous variable against a known, specified, or theoretical constant (μ₀).",
+    "companionNote": "In Stat Test Selector: One group compared against a known constant with continuous normal outcome.",
+    "items": [
+      {
+        "id": "scale",
+        "name": "Continuous (Interval or Ratio) Scale of Measurement",
+        "how": "Inspect variable operationalization and measurement metric in your codebook. Verify intervals between values are equal and numeric.",
+        "threshold": "Interval or ratio scale. Discrete rating scales (single Likert item 1–5) generally do not meet interval assumptions without composite scaling.",
+        "remedies": [
+          {
+            "label": "Outcome is ordinal or single-item Likert",
+            "consequence": "Distance between response categories cannot be assumed equal, leading to arbitrary mean calculations.",
+            "action": "Switch to One-Sample Wilcoxon Signed-Rank Test or One-Sample Sign Test against the hypothesized median.",
+            "thesisNote": "Because the measure was ordinal, the non-parametric Wilcoxon signed-rank test was utilized in place of a one-sample t-test."
+          },
+          {
+            "label": "Outcome is binary / proportions (0 or 1)",
+            "consequence": "Mean equals proportion, which violates continuous unbounded distributional assumptions.",
+            "action": "Use a One-Sample Binomial Test or One-Sample Z-Test for Proportions.",
+            "thesisNote": "For the binary outcome, a one-sample binomial test was performed against the reference proportion."
+          }
+        ]
+      },
+      {
+        "id": "indep",
+        "name": "Independence of Observations",
+        "how": "Verify sampling protocol. Each data point must come from a distinct participant or unit, sampled without clustering or repeated measurement over time.",
+        "threshold": "Zero autocorrelation among data points; each participant contributes exactly one observation.",
+        "remedies": [
+          {
+            "label": "Observations are clustered (e.g. students nested within classes)",
+            "consequence": "Standard errors will be underestimated, inflating false positive (Type I) error rates.",
+            "action": "Use a Linear Mixed Model with a random intercept for cluster, or cluster-robust standard errors.",
+            "thesisNote": "To account for clustering within units, a linear mixed model with random intercepts was specified."
+          },
+          {
+            "label": "Repeated measurements on same subjects",
+            "consequence": "Violates independence because within-subject variance is correlated.",
+            "action": "Use Paired-Samples t-Test (for 2 timepoints) or Linear Mixed Models (for longitudinal tracking).",
+            "thesisNote": "Due to the repeated-measures design, a paired-samples t-test was conducted."
+          }
+        ]
+      },
+      {
+        "id": "normal",
+        "name": "Normality of the Distribution",
+        "how": "Visual check with Normal Q-Q plot and histogram; calculate skewness and kurtosis; run Shapiro-Wilk test (p > .05 indicates normality).",
+        "threshold": "Points align closely along the diagonal line in the Q-Q plot; skewness between -1.0 and +1.0. For n ≥ 30, the Central Limit Theorem provides substantial robustness to moderate skewness.",
+        "remedies": [
+          {
+            "label": "Moderate skewness in moderate-to-large sample (n ≥ 30)",
+            "consequence": "Slight distortion in tail probabilities, but Central Limit Theorem protects Type I error rate.",
+            "action": "Proceed with t-test but report sample skewness, inspect Q-Q plot, and compute 95% bootstrap confidence intervals for verification.",
+            "thesisNote": "Visual inspection revealed mild skewness; given n ≥ 30, the one-sample t-test was retained alongside 95% BCa bootstrapped confidence intervals."
+          },
+          {
+            "label": "Severe skewness or small sample (n < 30)",
+            "consequence": "Type I error rate can be distorted and t-test loses statistical power.",
+            "action": "Use the One-Sample Wilcoxon Signed-Rank Test (or Sign Test if asymmetric).",
+            "thesisNote": "Because sample normality was violated (Shapiro-Wilk p < .05, n < 30), a one-sample Wilcoxon signed-rank test was used."
+          },
+          {
+            "label": "Skewness due to bounded positive data (reaction times, costs)",
+            "consequence": "Distribution is right-skewed with long positive tail.",
+            "action": "Apply a logarithmic or square root transformation before re-checking normality.",
+            "thesisNote": "A natural logarithmic transformation was applied to correct positive skew prior to parametric testing."
+          }
+        ]
+      },
+      {
+        "id": "outliers",
+        "name": "Absence of Extreme Outliers",
+        "how": "Inspect boxplot, compute standardized z-scores (|z| > 3.0), or evaluate Tukey's 1.5 × IQR fence.",
+        "threshold": "No extreme values (|z| > 3.29 or > 3 × IQR beyond hinges) unduly exerting leverage on the sample mean.",
+        "remedies": [
+          {
+            "label": "Data entry or coding error identified",
+            "consequence": "Artifact corrupts mean and inflates standard deviation.",
+            "action": "Correct the entry if verifiable against source records; if unverifiable, remove with clear documentation.",
+            "thesisNote": "One documented transcription error was corrected prior to formal statistical testing."
+          },
+          {
+            "label": "Legitimate extreme scores (heavy tails)",
+            "consequence": "A single extreme point can substantially bias the sample mean toward the outlier.",
+            "action": "Conduct sensitivity analysis: report t-test with and without the extreme score, or report a 10% trimmed mean.",
+            "thesisNote": "Sensitivity analyses with and without extreme values (|z| > 3.0) yielded consistent substantive conclusions."
+          },
+          {
+            "label": "Multiple severe outliers in small sample",
+            "consequence": "Severe inflation of sample variance, destroying statistical test power.",
+            "action": "Switch to One-Sample Wilcoxon Signed-Rank Test, which relies on ranks rather than metric distances.",
+            "thesisNote": "To minimize sensitivity to observed outliers, the rank-based Wilcoxon signed-rank test was adopted."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ttest",
+    "category": "t-Tests",
+    "catId": "t-tests",
+    "name": "Independent-Samples t-Test (Two-Sample t-Test)",
+    "desc": "Evaluates whether the population means of two mutually exclusive and independent groups differ significantly.",
+    "companionNote": "In Stat Test Selector: Two independent groups with continuous normal outcome.",
+    "items": [
+      {
+        "id": "scale",
+        "name": "Continuous Outcome & Binary Independent Variable",
+        "how": "Verify outcome variable is interval or ratio scaled. Grouping variable must have exactly two independent levels.",
+        "threshold": "Quantitative continuous outcome; 2 distinct groups (e.g. Treatment vs Control).",
+        "remedies": [
+          {
+            "label": "Outcome is ordinal or Likert scale",
+            "consequence": "Metric distances between response categories cannot be assumed equivalent.",
+            "action": "Use Mann-Whitney U test (Wilcoxon Rank-Sum test).",
+            "thesisNote": "Given the ordinal scale of the survey items, group comparisons were evaluated using the Mann-Whitney U test."
+          },
+          {
+            "label": "Grouping variable has 3 or more levels",
+            "consequence": "Running multiple pairwise t-tests causes family-wise alpha inflation (Type I error accumulation).",
+            "action": "Use One-Way ANOVA with appropriate post-hoc corrections (e.g. Tukey HSD).",
+            "thesisNote": "Because three treatment arms were compared, a one-way ANOVA was conducted rather than multiple t-tests."
+          }
+        ]
+      },
+      {
+        "id": "indep",
+        "name": "Independence of Observations & Groups",
+        "how": "Assess study methodology: participants in Group 1 must be independent of Group 2, with no pairing, matching, or cross-contamination.",
+        "threshold": "Independent random sampling or independent randomized group allocation; no participant belongs to both groups.",
+        "remedies": [
+          {
+            "label": "Groups are matched pairs or same participants across time",
+            "consequence": "Between-subject variance is confounded with within-subject correlation.",
+            "action": "Use Paired-Samples t-Test or Wilcoxon Signed-Rank Test.",
+            "thesisNote": "As measurements represented paired pre-post data on identical participants, a paired-samples t-test was employed."
+          },
+          {
+            "label": "Participants are nested in clusters (schools, clinics)",
+            "consequence": "Intraclass correlation deflates standard errors, producing spuriously small p-values.",
+            "action": "Employ a Linear Mixed Model with random group intercepts.",
+            "thesisNote": "To account for clustering within testing centers, a linear mixed model was estimated."
+          }
+        ]
+      },
+      {
+        "id": "normal",
+        "name": "Normality within Each Group",
+        "how": "Plot Normal Q-Q plots and histograms separately for each group; compute Shapiro-Wilk test for Group 1 and Group 2.",
+        "threshold": "Residuals/scores within each group show roughly symmetric distributions. If both n₁ and n₂ ≥ 30 with similar sizes, t-test is robust.",
+        "remedies": [
+          {
+            "label": "Moderate skewness with large balanced samples (n₁ ≈ n₂ ≥ 30)",
+            "consequence": "Central Limit Theorem ensures sample means are normally distributed; minimal impact on Type I error.",
+            "action": "Proceed with t-test, explicitly report diagnostic plots and group skewness statistics, and confirm via bootstrap CI.",
+            "thesisNote": "Although slight non-normality was observed, both groups exceeded n = 30; parametric t-test results were corroborated with 2,000 bootstrap resamples."
+          },
+          {
+            "label": "Severe skewness or small group sizes (n < 25)",
+            "consequence": "False positive rate deviates from nominal 5% and test loses power.",
+            "action": "Use the non-parametric Mann-Whitney U test.",
+            "thesisNote": "Because group normality assumptions were violated in a modest sample, the Mann-Whitney U test was used."
+          },
+          {
+            "label": "Skewness driven by log-normal process (e.g. reaction times, income)",
+            "consequence": "Multiplicative rather than additive effects.",
+            "action": "Log-transform or square-root transform the outcome in both groups and re-assess normality.",
+            "thesisNote": "Outcome data were log10-transformed to satisfy normality assumptions prior to two-sample t-testing."
+          }
+        ]
+      },
+      {
+        "id": "homovar",
+        "name": "Homogeneity of Variance (Homoscedasticity)",
+        "how": "Run Levene's test of equality of variances (center = median) or inspect ratio of larger variance to smaller variance.",
+        "threshold": "Levene's test p > .05; ratio of largest group variance to smallest group variance < 4 (especially benign if n₁ ≈ n₂).",
+        "remedies": [
+          {
+            "label": "Unequal group variances (Levene's p < .05)",
+            "consequence": "Student's t-test Type I error is distorted, especially if sample sizes are unequal (anti-conservative if smaller group has larger variance).",
+            "action": "Report Welch's t-test (Welch-Satterthwaite df adjustment) — modern consensus recommends Welch by default.",
+            "thesisNote": "Levene's test indicated unequal variances (p = .018); accordingly, Welch's t-test with adjusted degrees of freedom was reported."
+          },
+          {
+            "label": "Unequal variances with severely skewed small samples",
+            "consequence": "Both normality and homoscedasticity violated simultaneously.",
+            "action": "Use the Brunner-Munzel test (generalized rank test robust to heteroscedasticity) or Mann-Whitney U.",
+            "thesisNote": "Due to joint violations of normality and homoscedasticity, the Brunner-Munzel test was employed."
+          }
+        ]
+      },
+      {
+        "id": "outliers",
+        "name": "Absence of Extreme Group Outliers",
+        "how": "Group-stratified boxplots, inspect standardized residuals (|z| > 3.0), and examine studentized residuals.",
+        "threshold": "No extreme values (> 3 × IQR from quartile hinges) pulling one group mean away from its central tendency.",
+        "remedies": [
+          {
+            "label": "Valid extreme values with substantive rationale",
+            "consequence": "Inflates group standard deviation and may mask genuine between-group differences.",
+            "action": "Perform sensitivity analysis: report results with and without outlier, or report Welch t-test alongside trimmed means.",
+            "thesisNote": "A sensitivity check excluding two extreme observations (|z| > 3.0) confirmed the robustness of the primary findings."
+          },
+          {
+            "label": "Multiple outliers distorting rank spread",
+            "consequence": "Metric comparisons unreliable.",
+            "action": "Switch to the Mann-Whitney U test.",
+            "thesisNote": "To mitigate the undue influence of extreme observations, group comparisons were evaluated via Mann-Whitney U test."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "tpaired",
+    "category": "t-Tests",
+    "catId": "t-tests",
+    "name": "Paired-Samples t-Test (Dependent t-Test)",
+    "desc": "Tests whether the mean difference between two matched or repeated measurements on the same units differs from zero.",
+    "companionNote": "In Stat Test Selector: Two paired measurements with continuous normal differences.",
+    "items": [
+      {
+        "id": "paired",
+        "name": "Paired / Dependent Structure",
+        "how": "Verify study design: observations must naturally come in pairs (same participant at Time 1 and Time 2, or matched twin/case-control design).",
+        "threshold": "Exactly two measurements per unit; equal sample sizes for pre and post conditions (N pairs).",
+        "remedies": [
+          {
+            "label": "Independent groups (not repeated measures)",
+            "consequence": "Paired error covariance term is inapplicable.",
+            "action": "Switch to Independent-Samples t-Test or Welch's t-test.",
+            "thesisNote": "As the comparison involved two independent participant cohorts, an independent-samples t-test was conducted."
+          },
+          {
+            "label": "Substantial missing data / attrition at post-test",
+            "consequence": "Paired t-test discards any case with a missing session (listwise deletion), introducing potential attrition bias.",
+            "action": "Use a Linear Mixed Model with subject random intercepts (handles missing at random without dropping cases).",
+            "thesisNote": "To preserve statistical power and accommodate participant attrition, a linear mixed model was fitted."
+          }
+        ]
+      },
+      {
+        "id": "diffscale",
+        "name": "Continuous Difference Metric",
+        "how": "Calculate difference scores (D = Post - Pre). Verify difference values represent an interval or ratio scale.",
+        "threshold": "Quantitative difference permitting calculation of arithmetic mean and standard deviation.",
+        "remedies": [
+          {
+            "label": "Differences are ordinal or single Likert ratings",
+            "consequence": "Differences between rating points cannot be assumed equidistant.",
+            "action": "Use Wilcoxon Signed-Rank Test.",
+            "thesisNote": "Given the ordinal format of the response scales, pre-post differences were analyzed using Wilcoxon signed-rank tests."
+          },
+          {
+            "label": "Binary pre-post transitions (Pass → Fail)",
+            "consequence": "Difference is discrete categorical transition.",
+            "action": "Use McNemar's Test for paired proportions.",
+            "thesisNote": "Binary state changes between pre- and post-intervention were assessed via McNemar's test."
+          }
+        ]
+      },
+      {
+        "id": "normaldiff",
+        "name": "Normality of Difference Scores",
+        "how": "Plot Normal Q-Q plot and histogram of DIFFERENCE scores (D), NOT the raw pre and post scores; run Shapiro-Wilk on D.",
+        "threshold": "Difference distribution is reasonably bell-shaped. For N pairs ≥ 30, t-test is robust to moderate deviations.",
+        "remedies": [
+          {
+            "label": "Mild skewness in difference scores (N ≥ 30)",
+            "consequence": "Minimal impact on Type I error due to central limit theorem.",
+            "action": "Retain paired t-test; report Q-Q plot inspection and provide 95% bootstrap BCa confidence intervals for mean difference.",
+            "thesisNote": "With N = 42 pairs, the paired t-test was maintained and complemented with 95% bootstrap confidence intervals for the mean difference."
+          },
+          {
+            "label": "Marked skewness or small paired sample (N < 25)",
+            "consequence": "Loss of statistical power and inaccurate p-values.",
+            "action": "Use the Wilcoxon Signed-Rank Test.",
+            "thesisNote": "Because difference scores deviated significantly from normality (Shapiro-Wilk p = .012), the Wilcoxon signed-rank test was utilized."
+          },
+          {
+            "label": "Floor or ceiling compression on rating scale",
+            "consequence": "Truncated difference scores at boundaries.",
+            "action": "Consider beta regression for bounded scores or ordinal mixed models.",
+            "thesisNote": "To account for bounded score distributions, non-parametric Wilcoxon tests were evaluated."
+          }
+        ]
+      },
+      {
+        "id": "indep",
+        "name": "Independence of Difference Scores Across Pairs",
+        "how": "Verify that pair differences from one subject do not influence or covary with pair differences from another subject.",
+        "threshold": "Independent participant pairs; no shared clustering or group interaction influencing how difference scores covary.",
+        "remedies": [
+          {
+            "label": "Pairs are clustered within groups (couples, clinics, classrooms)",
+            "consequence": "Shared environment introduces intra-cluster correlation, underestimating standard errors.",
+            "action": "Use Multilevel / Linear Mixed Model with nested random effects for cluster.",
+            "thesisNote": "To account for clustering among paired participants, a multilevel model was specified."
+          },
+          {
+            "label": "Systematic order or carryover effect",
+            "consequence": "Condition order confounds treatment effect.",
+            "action": "Counterbalance testing order or include presentation order as a factor in a Repeated-Measures ANOVA.",
+            "thesisNote": "Presentation order was counterbalanced across participants to prevent systematic carryover bias."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "anova",
+    "category": "ANOVA & Mixed Models",
+    "catId": "anova-family",
+    "name": "One-Way Analysis of Variance (ANOVA)",
+    "desc": "Tests whether the population means of three or more independent groups differ significantly.",
+    "companionNote": "In Stat Test Selector: Three or more groups with continuous normal outcome.",
+    "items": [
+      {
+        "id": "design",
+        "name": "Continuous Outcome & 3+ Independent Groups",
+        "how": "Confirm outcome variable is interval/ratio and grouping factor has k ≥ 3 mutually exclusive levels.",
+        "threshold": "Continuous outcome; k ≥ 3 independent groups with adequate sample size per group.",
+        "remedies": [
+          {
+            "label": "Only two groups being compared",
+            "consequence": "One-way ANOVA is mathematically equivalent to independent t-test (F = t²), but t-test allows one-tailed hypotheses.",
+            "action": "Use Independent-Samples t-Test (or Welch t-test).",
+            "thesisNote": "With only two experimental groups, a two-sample t-test was conducted."
+          },
+          {
+            "label": "Outcome is ordinal or ranked",
+            "consequence": "Mean comparisons can misrepresent non-interval distances.",
+            "action": "Use Kruskal-Wallis H Test.",
+            "thesisNote": "Because the dependent variable was measured on an ordinal scale, the Kruskal-Wallis test was used."
+          }
+        ]
+      },
+      {
+        "id": "indep",
+        "name": "Independence of Observations",
+        "how": "Review data collection. Each subject must belong to only one group and provide one independent measurement.",
+        "threshold": "Zero correlation across residuals; no repeated measurements or shared cluster contexts.",
+        "remedies": [
+          {
+            "label": "Same subjects measured across all 3+ conditions",
+            "consequence": "Violates between-subject independence assumption.",
+            "action": "Switch to One-Way Repeated-Measures ANOVA or Linear Mixed Model.",
+            "thesisNote": "Because participants were tested across all three conditions, a repeated-measures ANOVA was conducted."
+          },
+          {
+            "label": "Participants clustered within organizational units",
+            "consequence": "Artificially deflates standard errors, causing inflated Type I errors.",
+            "action": "Fit a Hierarchical Linear Model (Linear Mixed-Effects Model).",
+            "thesisNote": "Given that participants were clustered within 8 distinct sites, a linear mixed model was implemented."
+          }
+        ]
+      },
+      {
+        "id": "normal",
+        "name": "Normality of Residuals",
+        "how": "Examine Normal Q-Q plot and histogram of ANOVA model residuals; run Shapiro-Wilk test on residuals.",
+        "threshold": "Residuals show roughly linear trend on Q-Q plot; robust to moderate skew if group sample sizes are balanced and n ≥ 20–30 per cell.",
+        "remedies": [
+          {
+            "label": "Moderate skewness with equal group sizes",
+            "consequence": "ANOVA F-test is notoriously robust to mild-to-moderate non-normality under equal sample sizes.",
+            "action": "Proceed with ANOVA; report residual Q-Q plot and corroborate with bootstrapped ANOVA or permutation test.",
+            "thesisNote": "While slight skew was present, group sample sizes were balanced (n = 35 each); ANOVA robustness was verified via bootstrap resampling."
+          },
+          {
+            "label": "Severe skewness or small, unequal groups",
+            "consequence": "Type I error rate can become unreliable and post-hoc power diminishes.",
+            "action": "Use Kruskal-Wallis H test.",
+            "thesisNote": "Severe non-normality in unbalanced groups prompted the use of the non-parametric Kruskal-Wallis test."
+          },
+          {
+            "label": "Log-normal distribution of outcome",
+            "consequence": "Variance expands proportionally with group means.",
+            "action": "Apply log transformation or Box-Cox transformation to the outcome variable.",
+            "thesisNote": "A log transformation was applied to stabilize positive skew before running the ANOVA."
+          }
+        ]
+      },
+      {
+        "id": "homovar",
+        "name": "Homogeneity of Variances (Homoscedasticity)",
+        "how": "Run Levene's test (center = median for Brown-Forsythe version); inspect ratio of max group variance to min group variance.",
+        "threshold": "Levene's test p > .05; ratio of max(s²)/min(s²) < 3–4 (especially important when group sizes are unequal).",
+        "remedies": [
+          {
+            "label": "Heteroscedasticity present (Levene's p < .05)",
+            "consequence": "Standard F-test becomes anti-conservative when smaller groups have larger variances.",
+            "action": "Report Welch's ANOVA (F_Welch) and follow up with Games-Howell post-hoc tests.",
+            "thesisNote": "Levene's test was statistically significant (p = .008); therefore, Welch's adjusted ANOVA and Games-Howell post-hoc comparisons were reported."
+          },
+          {
+            "label": "Heteroscedasticity with equal group sizes",
+            "consequence": "F-test is relatively robust, but post-hoc pairwise error rates may still suffer.",
+            "action": "Report Brown-Forsythe or Welch ANOVA alongside Huber-White robust standard errors.",
+            "thesisNote": "Equal group sizes attenuated heteroscedasticity concerns, and Welch's ANOVA confirmed the main omnibus effect."
+          }
+        ]
+      },
+      {
+        "id": "outliers",
+        "name": "Absence of Extreme Residual Outliers",
+        "how": "Inspect standardized residuals (|r| > 3.0) and Cook's distance values across groups.",
+        "threshold": "No standardized residual exceeding |3.29|; Cook's D < 0.5.",
+        "remedies": [
+          {
+            "label": "Confirmed data contamination or instrumentation failure",
+            "consequence": "Artificially expands within-group mean square error, masking genuine group differences.",
+            "action": "Remove verified aberrant score with transparent explanation in thesis methodology.",
+            "thesisNote": "One score resulting from recorded hardware malfunction was removed prior to omnibus analysis."
+          },
+          {
+            "label": "Substantive valid extreme scores",
+            "consequence": "May inflate within-group variance or falsely create group mean separation.",
+            "action": "Run sensitivity analysis comparing standard ANOVA with trimmed-means ANOVA (20% Wilcox trimmed ANOVA).",
+            "thesisNote": "Sensitivity analyses utilizing 20% trimmed means demonstrated that findings were not artifactually driven by extreme observations."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mixed",
+    "category": "ANOVA & Mixed Models",
+    "catId": "anova-family",
+    "name": "Linear Mixed-Effects Model (LMM / HLM)",
+    "desc": "Analyzes continuous outcomes when observations are clustered within units or measured repeatedly over time.",
+    "companionNote": "In Stat Test Selector: Clustered, repeated, or non-independent continuous data.",
+    "items": [
+      {
+        "id": "structure",
+        "name": "Continuous Outcome & Hierarchical Clustering Structure",
+        "how": "Verify outcome is continuous interval/ratio; identify grouping factors (e.g. repeated trials within subjects, patients within clinics).",
+        "threshold": "Continuous scale; clear nested or crossed hierarchical structure; Intraclass Correlation Coefficient (ICC) > 0.05 justifies mixed model.",
+        "remedies": [
+          {
+            "label": "Outcome is binary or count data",
+            "consequence": "Linear Gaussian error structure violates bounded discrete distribution.",
+            "action": "Use Generalized Linear Mixed Models (GLMM: binomial-logit or Poisson link).",
+            "thesisNote": "Given the binary outcome variable, a generalized linear mixed model with logit link was fitted."
+          },
+          {
+            "label": "ICC is essentially zero (ICC < 0.01) with unclustered data",
+            "consequence": "Mixed model adds unnecessary complexity without improving fit.",
+            "action": "Fit standard Multiple Linear Regression or ANOVA.",
+            "thesisNote": "Because intraclass correlation was negligible (ICC = .004), a standard multiple regression model was retained."
+          }
+        ]
+      },
+      {
+        "id": "random",
+        "name": "Appropriate Random Effects Specification",
+        "how": "Compare nested models using Likelihood Ratio Tests (LRT via ANOVA) and AIC/BIC; check for singular fit warnings.",
+        "threshold": "Model converges without singular fit; random intercept included; random slopes included only if supported by LRT and theory.",
+        "remedies": [
+          {
+            "label": "Singular fit warning / zero variance on random slopes",
+            "consequence": "Over-parameterized random effects structure creates numerical instability.",
+            "action": "Simplify random structure: remove correlation between intercept and slope, or drop near-zero random slope terms.",
+            "thesisNote": "To resolve a singular fit warning, the random effect structure was simplified by retaining random intercepts and omitting uncorrelated random slopes."
+          },
+          {
+            "label": "Substantive variation in predictor slopes across clusters",
+            "consequence": "Assuming fixed slopes produces overly optimistic standard errors.",
+            "action": "Retain random slope if LRT p < .05 and theoretical rationale exists.",
+            "thesisNote": "A likelihood ratio test supported the inclusion of random slopes for the treatment condition (χ²(2) = 8.41, p = .015)."
+          }
+        ]
+      },
+      {
+        "id": "level1normal",
+        "name": "Normality of Level-1 (Conditional) Residuals",
+        "how": "Inspect Normal Q-Q plot and histogram of conditional (level-1) residuals.",
+        "threshold": "Level-1 residuals align reasonably along the diagonal line; fixed effect coefficients remain robust in large samples.",
+        "remedies": [
+          {
+            "label": "Skewed level-1 residuals",
+            "consequence": "Can distort inference for confidence intervals and prediction intervals.",
+            "action": "Transform the dependent variable (log or Box-Cox) or use robust linear mixed modeling (rlmer in R).",
+            "thesisNote": "The dependent variable was log-transformed to satisfy level-1 residual normality."
+          },
+          {
+            "label": "Heavy tails / extreme residual outliers",
+            "consequence": "Inflates standard errors of fixed estimates.",
+            "action": "Report parametric bootstrap confidence intervals for fixed effects (e.g. 1,000 bootstrap resamples).",
+            "thesisNote": "Parametric bootstrap confidence intervals (1,000 simulations) were computed to corroborate fixed effect estimates."
+          }
+        ]
+      },
+      {
+        "id": "level2normal",
+        "name": "Normality of Random Effects (Level-2 Residuals)",
+        "how": "Plot Normal Q-Q plots of best linear unbiased predictors (BLUPs) / random intercepts across clusters.",
+        "threshold": "Random intercepts roughly normally distributed around 0 across clusters.",
+        "remedies": [
+          {
+            "label": "Skewed cluster intercepts / outlier clusters",
+            "consequence": "Indicates omitted cluster-level covariates.",
+            "action": "Add cluster-level explanatory variables (e.g., clinic size, school socio-economic status) to explain between-cluster variance.",
+            "thesisNote": "Between-cluster heterogeneity was modeled by introducing cluster-level covariates."
+          },
+          {
+            "label": "Small number of clusters (Level-2 units < 15–20)",
+            "consequence": "Variance components are underestimated; Kenward-Roger df adjustment needed.",
+            "action": "Apply Kenward-Roger or Satterthwaite degrees of freedom correction for fixed effect tests.",
+            "thesisNote": "With 14 clusters, Kenward-Roger degrees-of-freedom adjustments were applied to all fixed effect tests."
+          }
+        ]
+      },
+      {
+        "id": "homosced",
+        "name": "Homoscedasticity of Level-1 Residuals",
+        "how": "Plot conditional residuals against fitted values across levels of the grouping factor.",
+        "threshold": "Constant residual spread across all fitted ranges and across distinct cluster groups.",
+        "remedies": [
+          {
+            "label": "Heteroscedasticity across groups or conditions",
+            "consequence": "Standard errors for fixed effects may be misestimated.",
+            "action": "Model heterogeneous variance structure (e.g. weights = varIdent in nlme) or use Cluster-Robust Standard Errors (CRSE).",
+            "thesisNote": "A heterogeneous residual variance structure across conditions was specified to resolve heteroscedasticity."
+          },
+          {
+            "label": "Variance expands with fitted values",
+            "consequence": "Multiplicative error structure.",
+            "action": "Log-transform outcome variable.",
+            "thesisNote": "Outcome data were log-transformed to stabilize residual dispersion across fitted values."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mannwhitney",
+    "category": "Non-Parametric Tests",
+    "catId": "non-parametric",
+    "name": "Mann-Whitney U Test (Wilcoxon Rank-Sum)",
+    "desc": "Compares the distributions (or medians) of two independent groups when parametric assumptions are violated.",
+    "companionNote": "In Stat Test Selector: Two independent groups with non-normal or ordinal outcome.",
+    "items": [
+      {
+        "id": "scale",
+        "name": "Ordinal or Skewed Continuous Outcome",
+        "how": "Verify outcome can be ranked consistently from lowest to highest; independent variable has two distinct groups.",
+        "threshold": "Valid ranking across all observations; at least ordinal scale.",
+        "remedies": [
+          {
+            "label": "Nominal unordered outcome",
+            "consequence": "Ranks are meaningless for categorical variables without natural order.",
+            "action": "Use Chi-Square Test of Independence or Fisher's Exact Test.",
+            "thesisNote": "For nominal outcomes, independence was evaluated using chi-square tests."
+          },
+          {
+            "label": "Outcome is continuous and normally distributed",
+            "consequence": "Mann-Whitney has approximately 95% relative asymptotic efficiency compared to t-test, forfeiting minor power.",
+            "action": "Switch to Independent-Samples t-Test (or Welch's t-test) for greater power and explicit mean estimation.",
+            "thesisNote": "Because outcome normality and scale met parametric requirements, a two-sample t-test was reported."
+          }
+        ]
+      },
+      {
+        "id": "indep",
+        "name": "Independence of Observations",
+        "how": "Confirm that each participant belongs to only one group and contributes one observation.",
+        "threshold": "Independent random sampling; no pairing or repeated measures.",
+        "remedies": [
+          {
+            "label": "Repeated measures on same individuals",
+            "consequence": "Within-subject correlation invalidates rank permutation.",
+            "action": "Use Wilcoxon Signed-Rank Test.",
+            "thesisNote": "Because data consisted of paired pre-post trials, the Wilcoxon signed-rank test was utilized."
+          },
+          {
+            "label": "Hierarchically clustered participants",
+            "consequence": "Rank tests assume independent sampling units.",
+            "action": "Use Cumulative Link Mixed Models (Ordinal Mixed Effects).",
+            "thesisNote": "To model clustered ordinal outcomes, a cumulative link mixed model was estimated."
+          }
+        ]
+      },
+      {
+        "id": "shape",
+        "name": "Distributional Shape Similarity (for Median Inference)",
+        "how": "Inspect overlaid histograms or kernel density plots of both groups to check if shapes and dispersions are similar.",
+        "threshold": "If shapes are similar, the test assesses difference in medians; if shapes differ, the test assesses stochastic dominance (mean ranks).",
+        "remedies": [
+          {
+            "label": "Distribution shapes differ markedly (e.g. one skewed, one flat)",
+            "consequence": "Cannot claim a difference in group medians; test strictly evaluates mean ranks / stochastic superiority.",
+            "action": "Report mean ranks, medians with IQR, and the probability of superiority effect size (rank-biserial r or Common Language Effect Size).",
+            "thesisNote": "Because group distribution shapes differed, results are reported as a test of stochastic dominance (mean ranks and rank-biserial r) rather than median differences."
+          },
+          {
+            "label": "Severe heteroscedasticity with dissimilar shapes",
+            "consequence": "Mann-Whitney U can suffer inflated Type I errors under unequal variances.",
+            "action": "Use the Brunner-Munzel test (generalized rank test robust to heteroscedasticity).",
+            "thesisNote": "Due to unequal dispersion between groups, the Brunner-Munzel test was employed for robust rank comparison."
+          }
+        ]
+      },
+      {
+        "id": "ties",
+        "name": "Handling of Tied Ranks",
+        "how": "Check the proportion of identical values (ties) in your dataset across groups.",
+        "threshold": "Few ties. If extensive ties exist (e.g. 5-point Likert scale with hundreds of respondents), asymptotic normal approximation with tie-correction is required.",
+        "remedies": [
+          {
+            "label": "High proportion of tied ranks (e.g. short rating scales)",
+            "consequence": "Unadjusted exact p-values become conservative.",
+            "action": "Apply standard mid-rank assignment and use tie-adjusted asymptotic z-approximation, or run permutation tests.",
+            "thesisNote": "Mid-ranks were assigned and asymptotic z-approximations with standard tie corrections were reported."
+          },
+          {
+            "label": "Small sample size with ties (total N < 30)",
+            "consequence": "Asymptotic approximations may be inaccurate.",
+            "action": "Compute exact permutation p-value with tie handling.",
+            "thesisNote": "Exact permutation tests with mid-rank tie adjustment were used to verify statistical significance."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "wilcoxon",
+    "category": "Non-Parametric Tests",
+    "catId": "non-parametric",
+    "name": "Wilcoxon Signed-Rank Test (Paired)",
+    "desc": "Non-parametric test for comparing two paired, matched, or repeated-measures samples on an ordinal or continuous metric.",
+    "companionNote": "In Stat Test Selector: Two paired measurements with non-normal differences or ordinal scale.",
+    "items": [
+      {
+        "id": "paired",
+        "name": "Paired / Dependent Structure",
+        "how": "Verify that data consists of paired observations from the same individuals or matched subject pairs.",
+        "threshold": "One-to-one paired records; equal counts across conditions.",
+        "remedies": [
+          {
+            "label": "Independent groups (unmatched)",
+            "consequence": "Pairs cannot be subtracted.",
+            "action": "Use Mann-Whitney U test.",
+            "thesisNote": "Because experimental groups were independent, the Mann-Whitney U test was conducted."
+          },
+          {
+            "label": "More than two paired conditions (e.g. Pre, Post, Follow-up)",
+            "consequence": "Multiple pairwise Wilcoxon tests inflate family-wise error.",
+            "action": "Use Friedman Test followed by Conover post-hoc comparisons.",
+            "thesisNote": "For comparison across three repeated intervals, a Friedman test was conducted."
+          }
+        ]
+      },
+      {
+        "id": "scale",
+        "name": "Ordinal or Continuous Metric for Differences",
+        "how": "Verify that difference scores D = X₂ - X₁ can be calculated and ranked by magnitude.",
+        "threshold": "Meaningful magnitude ordering of differences; at least ordinal difference scale.",
+        "remedies": [
+          {
+            "label": "Dichotomous binary outcome (e.g. Yes vs No)",
+            "consequence": "Differences can only be -1, 0, +1; magnitude ranking is impossible.",
+            "action": "Use McNemar's Test for paired proportions.",
+            "thesisNote": "Paired binary shifts were evaluated via McNemar's test."
+          },
+          {
+            "label": "Continuous differences that meet normality",
+            "consequence": "Wilcoxon test discards metric precision.",
+            "action": "Use Paired-Samples t-Test for greater power.",
+            "thesisNote": "Because difference scores satisfied normality, a paired-samples t-test was reported."
+          }
+        ]
+      },
+      {
+        "id": "symmetry",
+        "name": "Symmetry of Difference Scores (for Median Test)",
+        "how": "Plot histogram of difference scores (D). Check whether the distribution of differences is roughly symmetric around its median.",
+        "threshold": "Reasonably symmetric difference distribution (necessary if concluding that the median difference is zero).",
+        "remedies": [
+          {
+            "label": "Asymmetric difference distribution",
+            "consequence": "Wilcoxon test assesses pseudomedian (center of Walsh averages), not true median.",
+            "action": "Report Sign Test (which requires zero symmetry assumption), or report Wilcoxon results explicitly as pseudomedian shift.",
+            "thesisNote": "Because difference scores were markedly skewed, the sign test was conducted alongside the Wilcoxon signed-rank test."
+          },
+          {
+            "label": "Many zero differences (D = 0)",
+            "consequence": "Different software packages treat zero differences differently (Wilcoxon drops zeros, Pratt ranks zeros).",
+            "action": "Explicitly report the zero-difference handling method (e.g. Pratt method recommended to preserve sample size).",
+            "thesisNote": "Zero differences were handled using Pratt's method to maintain nominal sample size."
+          }
+        ]
+      },
+      {
+        "id": "indep",
+        "name": "Independence of Pairs",
+        "how": "Ensure pairs of measurements from different participants are mutually independent.",
+        "threshold": "Independent participant pairs; no cluster dependencies.",
+        "remedies": [
+          {
+            "label": "Pairs are nested in clusters (e.g. patient pairs within clinics)",
+            "consequence": "Intra-cluster correlation distorts test calibration.",
+            "action": "Fit a Generalized Estimating Equation (GEE) or Multilevel Ordinal Model.",
+            "thesisNote": "To account for clustering across clinics, a generalized estimating equations approach was utilized."
+          },
+          {
+            "label": "Carryover or fatigue effect across trials",
+            "consequence": "Systematic sequence bias.",
+            "action": "Counterbalance sequence order in design; report order checks.",
+            "thesisNote": "Testing order was counterbalanced across participants to mitigate sequence effects."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "kruskal",
+    "category": "Non-Parametric Tests",
+    "catId": "non-parametric",
+    "name": "Kruskal-Wallis H Test",
+    "desc": "Non-parametric alternative to one-way ANOVA for comparing three or more independent groups.",
+    "companionNote": "In Stat Test Selector: Three or more groups with non-normal or ordinal outcome.",
+    "items": [
+      {
+        "id": "design",
+        "name": "Continuous or Ordinal Outcome & 3+ Groups",
+        "how": "Confirm outcome variable is at least ordinal; grouping variable has k ≥ 3 independent levels.",
+        "threshold": "Valid pooled ranking across all observations; 3 or more distinct groups.",
+        "remedies": [
+          {
+            "label": "Only two groups being compared",
+            "consequence": "Kruskal-Wallis H is algebraically equivalent to Mann-Whitney U for k = 2.",
+            "action": "Use Mann-Whitney U test.",
+            "thesisNote": "With two comparison groups, the Mann-Whitney U test was reported."
+          },
+          {
+            "label": "Outcome is continuous and normally distributed with equal variances",
+            "consequence": "Non-parametric rank test sacrifices approximately 5% asymptotic efficiency.",
+            "action": "Switch to One-Way ANOVA for parameter estimation and effect size.",
+            "thesisNote": "As parametric assumptions were fully satisfied, a one-way ANOVA was conducted."
+          }
+        ]
+      },
+      {
+        "id": "indep",
+        "name": "Independence of Observations",
+        "how": "Verify that each participant belongs to only one group and provides a single observation.",
+        "threshold": "Independent random sampling across all groups; no repeated measurements.",
+        "remedies": [
+          {
+            "label": "Repeated measures on same individuals across conditions",
+            "consequence": "Violates independent sampling assumption across groups.",
+            "action": "Use the Friedman Test.",
+            "thesisNote": "Because conditions represented repeated measurements on the same sample, the Friedman test was adopted."
+          },
+          {
+            "label": "Observations clustered within higher-level units",
+            "consequence": "Shared variance violates independent rank ordering.",
+            "action": "Use Ordinal / Cumulative Link Mixed Models.",
+            "thesisNote": "Clustered ordinal ratings were analyzed via cumulative link mixed models."
+          }
+        ]
+      },
+      {
+        "id": "shape",
+        "name": "Distributional Shape Similarity (for Median Comparisons)",
+        "how": "Inspect kernel density plots or histograms for each of the k groups to examine distribution shape and spread.",
+        "threshold": "Similar shapes allow interpretation as a test of median differences; differing shapes mean the test assesses stochastic dominance (mean ranks).",
+        "remedies": [
+          {
+            "label": "Group distributions show differing shapes and spreads",
+            "consequence": "Cannot claim a difference between group medians.",
+            "action": "Report mean ranks, medians with IQR, and interpret as general stochastic dominance. Use Dunn's test with Bonferroni correction for post-hoc pairwise comparisons.",
+            "thesisNote": "Because distribution shapes varied across groups, the Kruskal-Wallis test was interpreted in terms of mean ranks rather than medians, followed by Dunn's post-hoc tests with Bonferroni correction."
+          },
+          {
+            "label": "Severe heteroscedasticity across groups",
+            "consequence": "Inflates Type I error in asymptotic chi-square approximation.",
+            "action": "Use Welch's ANOVA on trimmed means or permutation tests.",
+            "thesisNote": "Due to severe group heteroscedasticity, Welch's trimmed-mean test was computed for robustness."
+          }
+        ]
+      },
+      {
+        "id": "samplesize",
+        "name": "Adequate Sample Size per Group",
+        "how": "Check sample size (n_j) in each of the k groups.",
+        "threshold": "Each group should ideally have n ≥ 5 for the asymptotic chi-square distribution of the H statistic to be valid.",
+        "remedies": [
+          {
+            "label": "Very small group sizes (n < 5 in some groups)",
+            "consequence": "Asymptotic chi-square distribution yields inaccurate p-values.",
+            "action": "Compute exact permutation p-value for the Kruskal-Wallis test (available in R coin::kruskal_test or SPSS exact tests).",
+            "thesisNote": "Due to small sample sizes in select cells (n < 5), exact permutation p-values were calculated."
+          },
+          {
+            "label": "High proportion of tied ranks across small groups",
+            "consequence": "Ties reduce variance of the test statistic.",
+            "action": "Apply standard tie-correction formula to the H statistic.",
+            "thesisNote": "The Kruskal-Wallis H statistic was adjusted using the standard tie-correction divisor."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "spearman",
+    "category": "Non-Parametric Tests",
+    "catId": "non-parametric",
+    "name": "Spearman Rank Correlation (rs)",
+    "desc": "Measures the strength and direction of the monotonic relationship between two ranked or continuous variables.",
+    "companionNote": "In Stat Test Selector: Continuous predictor and outcome with non-normal distribution or non-linear monotonic curve.",
+    "items": [
+      {
+        "id": "scale",
+        "name": "Continuous or Ordinal Variables",
+        "how": "Verify that both variables are measured on at least an ordinal scale, permitting rank ordering.",
+        "threshold": "Meaningful ranking possible for both variables.",
+        "remedies": [
+          {
+            "label": "Variables are unordered nominal categories",
+            "consequence": "Rank ordering is meaningless for nominal variables.",
+            "action": "Use Cramér's V or Chi-Square Test of Independence.",
+            "thesisNote": "Association between nominal variables was assessed using Cramér's V."
+          },
+          {
+            "label": "Both variables continuous and normally distributed with linear pattern",
+            "consequence": "Spearman rank correlation discards metric variance, losing approximately 9% power compared to Pearson r.",
+            "action": "Use Pearson Product-Moment Correlation (r) or Simple Linear Regression.",
+            "thesisNote": "Because variables exhibited linear bivariate normality, Pearson's correlation coefficient was reported."
+          }
+        ]
+      },
+      {
+        "id": "monotonic",
+        "name": "Monotonic Relationship",
+        "how": "Inspect bivariate scatterplot of raw values; verify that as X increases, Y tends to consistently increase or decrease.",
+        "threshold": "Consistently increasing or decreasing trend (monotonic); no U-shaped, inverted-U, or cyclical pattern.",
+        "remedies": [
+          {
+            "label": "Non-monotonic / curvilinear relationship (e.g. inverted-U)",
+            "consequence": "Spearman correlation coefficient can be close to zero even when a strong relationship exists.",
+            "action": "Fit a polynomial regression (with quadratic term X²) or non-linear smoothing model.",
+            "thesisNote": "Given the non-monotonic curvilinear relationship observed in the scatterplot, quadratic regression was evaluated rather than rank correlation."
+          },
+          {
+            "label": "Segmented relationship (flat then rising)",
+            "consequence": "Global monotonic metric masks threshold effects.",
+            "action": "Fit piecewise / segmented regression or spline modeling.",
+            "thesisNote": "Piecewise regression was used to identify distinct threshold break points."
+          }
+        ]
+      },
+      {
+        "id": "indep",
+        "name": "Independence of Paired Observations",
+        "how": "Ensure each pair of values (X_i, Y_i) represents an independent participant or unit.",
+        "threshold": "Independent random sampling; no repeated measurements on the same participant.",
+        "remedies": [
+          {
+            "label": "Repeated measurements on same subjects across occasions",
+            "consequence": "Intra-individual correlation invalidates standard rank independence.",
+            "action": "Use Repeated-Measures Correlation (rmcorr) or Linear Mixed Models.",
+            "thesisNote": "To assess rank association within repeated measurements, repeated-measures correlation (rmcorr) was applied."
+          },
+          {
+            "label": "Participants clustered within groups",
+            "consequence": "Shared group variance invalidates rank permutation.",
+            "action": "Fit Multilevel Mixed Models.",
+            "thesisNote": "Clustered participant structure was handled via multilevel modeling."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "wilcoxon1",
+    "category": "Non-Parametric Tests",
+    "catId": "non-parametric",
+    "name": "One-Sample Wilcoxon Signed-Rank Test",
+    "desc": "Non-parametric test comparing a single sample's distribution/median against a specified theoretical value.",
+    "companionNote": "In Stat Test Selector: One group compared against known constant with non-normal continuous or ordinal outcome.",
+    "items": [
+      {
+        "id": "scale",
+        "name": "Ordinal or Continuous Measurement Scale",
+        "how": "Verify that data can be subtracted from hypothesized median M₀ (D_i = X_i - M₀) and difference magnitudes can be ranked.",
+        "threshold": "At least ordinal scale where distance from reference point M₀ can be meaningfully ordered.",
+        "remedies": [
+          {
+            "label": "Nominal categorical outcome",
+            "consequence": "Cannot subtract or rank categories.",
+            "action": "Use One-Sample Binomial Test or Chi-Square Goodness-of-Fit Test.",
+            "thesisNote": "For categorical variables, goodness of fit was evaluated using a one-sample binomial test."
+          },
+          {
+            "label": "Outcome is continuous and normally distributed",
+            "consequence": "Wilcoxon test sacrifices minor statistical power.",
+            "action": "Use One-Sample t-Test.",
+            "thesisNote": "Because sample normality was confirmed, the one-sample t-test was reported."
+          }
+        ]
+      },
+      {
+        "id": "symmetry",
+        "name": "Symmetry of the Distribution Around Median",
+        "how": "Inspect histogram, boxplot, and density plot of sample values; verify that positive deviations from the median mirror negative deviations.",
+        "threshold": "Reasonably symmetric distribution shape around the sample median (required to interpret as a test of the median).",
+        "remedies": [
+          {
+            "label": "Markedly asymmetric / skewed distribution",
+            "consequence": "Wilcoxon signed-rank test tests the pseudomedian (center of pair averages), not the true median.",
+            "action": "Use the One-Sample Sign Test (which tests the median directly without assuming symmetry), or report Wilcoxon results explicitly as pseudomedian shift.",
+            "thesisNote": "Due to marked distributional asymmetry, the one-sample sign test was conducted alongside the Wilcoxon signed-rank test."
+          },
+          {
+            "label": "Values exactly equal to hypothesized median (D = 0)",
+            "consequence": "Standard Wilcoxon algorithm drops zero differences, reducing effective sample size.",
+            "action": "Apply Pratt's method to include zero differences in ranking, or report exact zero count.",
+            "thesisNote": "Zero differences were handled using Pratt's method to avoid discarding valid observations."
+          }
+        ]
+      },
+      {
+        "id": "indep",
+        "name": "Independence of Observations",
+        "how": "Confirm that each observation comes from an independently sampled individual.",
+        "threshold": "Independent sampling without replacement; no repeated measures or spatial clustering.",
+        "remedies": [
+          {
+            "label": "Clustered sampling structure",
+            "consequence": "Shared variance violates permutation assumptions.",
+            "action": "Use Generalized Estimating Equations or Multilevel Models.",
+            "thesisNote": "To account for sample clustering, multilevel modeling was utilized."
+          },
+          {
+            "label": "Repeated measurements across two conditions",
+            "consequence": "Design is paired rather than one-sample.",
+            "action": "Use Paired Wilcoxon Signed-Rank Test.",
+            "thesisNote": "Paired pre-post measurements were evaluated using the paired Wilcoxon signed-rank test."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "slr",
+    "category": "Regression Models",
+    "catId": "regression",
+    "name": "Simple Linear Regression",
+    "desc": "Models the linear relationship between a single continuous predictor (X) and a continuous outcome (Y).",
+    "companionNote": "In Stat Test Selector: One continuous predictor and one continuous normal outcome.",
+    "items": [
+      {
+        "id": "linear",
+        "name": "Linearity of the Relationship",
+        "how": "Inspect bivariate scatterplot of X and Y with LOESS curve; check Residuals vs Fitted values plot.",
+        "threshold": "Points scatter evenly around a horizontal line at 0 on Residuals vs Fitted plot; LOESS curve shows no obvious curve/arch.",
+        "remedies": [
+          {
+            "label": "Curvilinear / quadratic pattern in scatterplot",
+            "consequence": "Linear model systematically under-predicts and over-predicts at different ranges of X.",
+            "action": "Add a quadratic predictor term (X²) to fit a polynomial regression.",
+            "thesisNote": "Due to noticeable curvature in the residual plot, a quadratic term was added to the regression equation."
+          },
+          {
+            "label": "Monotonic non-linear curve (diminishing returns)",
+            "consequence": "Model misspecification on raw scale.",
+            "action": "Log-transform predictor X or outcome Y.",
+            "thesisNote": "A log transformation was applied to the predictor to linearize the relationship."
+          },
+          {
+            "label": "Monotonic rank relationship without parametric fit",
+            "consequence": "Parametric assumptions fail.",
+            "action": "Use Spearman Rank Correlation.",
+            "thesisNote": "Non-linear monotonic relationship was evaluated via Spearman rank correlation."
+          }
+        ]
+      },
+      {
+        "id": "normal",
+        "name": "Normality of Residuals",
+        "how": "Plot Normal Q-Q plot of standardized residuals; histogram of residuals; Shapiro-Wilk test on residuals.",
+        "threshold": "Residual points align closely with diagonal 45-degree reference line; mild departures are acceptable if n ≥ 30 due to Central Limit Theorem.",
+        "remedies": [
+          {
+            "label": "Moderate skewness in residuals (n ≥ 30)",
+            "consequence": "Point estimates of slope remain unbiased; minor distortion in p-values.",
+            "action": "Proceed with regression, report Q-Q plot, and report 95% bootstrap confidence intervals for the slope.",
+            "thesisNote": "Residuals exhibited mild positive skewness; however, with n = 78, bootstrap standard errors (2,000 resamples) confirmed statistical significance."
+          },
+          {
+            "label": "Severe skewness or small sample size (n < 30)",
+            "consequence": "Inference on t-statistic and prediction intervals become unreliable.",
+            "action": "Transform outcome variable (log or Box-Cox) or use robust regression.",
+            "thesisNote": "Outcome data were log-transformed to satisfy residual normality requirements."
+          }
+        ]
+      },
+      {
+        "id": "homosced",
+        "name": "Homoscedasticity (Constant Residual Variance)",
+        "how": "Inspect Residuals vs Fitted plot (or Scale-Location plot of √|standardized residuals|); run Breusch-Pagan or Koenker test.",
+        "threshold": "Even vertical dispersion of residuals across all fitted values (no funnel or megaphone pattern); Breusch-Pagan p > .05.",
+        "remedies": [
+          {
+            "label": "Funnel pattern / heteroscedasticity (Breusch-Pagan p < .05)",
+            "consequence": "Ordinary least squares standard errors are biased, invalidating confidence intervals and p-values.",
+            "action": "Report regression with Heteroscedasticity-Consistent robust standard errors (HC3 or HC4 / White standard errors).",
+            "thesisNote": "Breusch-Pagan test indicated heteroscedasticity (p = .014); therefore, HC3 robust standard errors were reported."
+          },
+          {
+            "label": "Variance expands with outcome magnitude",
+            "consequence": "Multiplicative error structure.",
+            "action": "Log-transform outcome Y (stabilizes variance), or use Weighted Least Squares (WLS).",
+            "thesisNote": "Log-transforming the dependent variable successfully stabilized residual variance."
+          }
+        ]
+      },
+      {
+        "id": "indep",
+        "name": "Independence of Residuals (No Autocorrelation)",
+        "how": "Calculate Durbin-Watson statistic (d); plot residuals against collection sequence or time index.",
+        "threshold": "Durbin-Watson statistic d is between 1.5 and 2.5 (d ≈ 2.0 indicates zero first-order autocorrelation).",
+        "remedies": [
+          {
+            "label": "Positive autocorrelation in time series (d < 1.5)",
+            "consequence": "Standard errors are severely underestimated, producing false-positive statistical significance.",
+            "action": "Use Generalized Least Squares (GLS) with AR(1) error structure, or Newey-West standard errors.",
+            "thesisNote": "Due to autocorrelation in time-ordered data (Durbin-Watson d = 1.18), Newey-West HAC standard errors were applied."
+          },
+          {
+            "label": "Clustered observations across sampling units",
+            "consequence": "Intra-cluster dependence.",
+            "action": "Fit a Linear Mixed Model with random cluster intercepts.",
+            "thesisNote": "Clustered sampling was addressed using a linear mixed model."
+          }
+        ]
+      },
+      {
+        "id": "outliers",
+        "name": "Absence of Undue Influential Observations",
+        "how": "Inspect Cook's distance (D), Leverage values (hat values h_ii), and Studentized residuals.",
+        "threshold": "Cook's distance D < 4/n (or D < 1.0); hat values < 3 × (2/n); studentized residuals within ±3.0.",
+        "remedies": [
+          {
+            "label": "High-leverage influential point identified (Cook's D > 4/n)",
+            "consequence": "A single observation exerts disproportionate pulling force on regression slope.",
+            "action": "Conduct sensitivity analysis: present regression models with and without the influential case, and document reasons.",
+            "thesisNote": "Exclusion of one high-leverage observation (Cook's D = 0.22 > 4/n) did not alter substantive conclusions, confirming model stability."
+          },
+          {
+            "label": "Multiple severe outliers in predictor or outcome",
+            "consequence": "OLS slope is corrupted.",
+            "action": "Use Robust Regression (Huber M-estimator or Theil-Sen estimator).",
+            "thesisNote": "Robust regression using Huber M-estimation was employed to minimize the influence of extreme residuals."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mlr",
+    "category": "Regression Models",
+    "catId": "regression",
+    "name": "Multiple Linear Regression",
+    "desc": "Evaluates the linear relationship between multiple continuous and categorical predictors and a continuous outcome.",
+    "companionNote": "In Stat Test Selector: Multiple predictors (mix of categorical/continuous) with continuous normal outcome.",
+    "items": [
+      {
+        "id": "linear",
+        "name": "Multivariate Linearity of Residuals",
+        "how": "Inspect Residuals vs Fitted values plot; examine partial regression plots (added-variable plots) for each predictor.",
+        "threshold": "Points randomly scattered around 0 on Residuals vs Fitted; linear slopes on all partial regression plots.",
+        "remedies": [
+          {
+            "label": "Non-linear pattern for specific predictor",
+            "consequence": "Systematic bias in coefficient for that predictor and correlated covariates.",
+            "action": "Transform that predictor (quadratic X², logarithmic, or spline).",
+            "thesisNote": "A quadratic term was added for predictor X to address non-linear trends observed in added-variable plots."
+          },
+          {
+            "label": "Moderation / interaction between predictors",
+            "consequence": "Effect of X₁ depends on level of X₂.",
+            "action": "Add mean-centered interaction term (X₁ × X₂).",
+            "thesisNote": "Mean-centered interaction terms were included to test hypothesized moderation effects."
+          }
+        ]
+      },
+      {
+        "id": "multicol",
+        "name": "Absence of Excessive Multicollinearity",
+        "how": "Compute Variance Inflation Factors (VIF) and Tolerances (1/VIF) for all predictors; review bivariate correlation matrix.",
+        "threshold": "VIF < 5 for all predictors (VIF > 10 indicates severe inflation); pairwise r < 0.80.",
+        "remedies": [
+          {
+            "label": "High VIF between predictors (VIF > 5)",
+            "consequence": "Inflates standard errors of coefficients, making significant predictors appear statistically non-significant.",
+            "action": "Drop redundant collinear variable or combine collinear predictors into a single composite scale (mean or factor score).",
+            "thesisNote": "High multicollinearity between scales (VIF = 6.8) was resolved by creating a standardized composite index."
+          },
+          {
+            "label": "High VIF caused by interaction or polynomial terms",
+            "consequence": "Structural multicollinearity from raw powers.",
+            "action": "Mean-center continuous predictors before creating interaction or polynomial terms.",
+            "thesisNote": "Predictors were mean-centered prior to forming interaction terms, reducing structural multicollinearity."
+          },
+          {
+            "label": "Extensive collinearity across many indicators",
+            "consequence": "Overfitting and unstable beta weights.",
+            "action": "Use Ridge Regression or Elastic Net regularization.",
+            "thesisNote": "Ridge regression was used to stabilize estimates across collinear predictors."
+          }
+        ]
+      },
+      {
+        "id": "homosced",
+        "name": "Homoscedasticity of Residuals",
+        "how": "Inspect Scale-Location plot (√|standardized residuals| vs fitted values); run Breusch-Pagan or White's test.",
+        "threshold": "Uniform horizontal band across fitted range; Breusch-Pagan p > .05.",
+        "remedies": [
+          {
+            "label": "Heteroscedasticity detected (Breusch-Pagan p < .05)",
+            "consequence": "Standard OLS standard errors and confidence intervals are invalid.",
+            "action": "Report regression coefficients with Heteroscedasticity-Consistent robust standard errors (HC3 or HC4 / White SE).",
+            "thesisNote": "Heteroscedasticity was identified (Breusch-Pagan p = .003); consequently, HC3 robust standard errors were reported."
+          },
+          {
+            "label": "Residual variance scales with one predictor",
+            "consequence": "Unequal error precision.",
+            "action": "Fit Weighted Least Squares (WLS) or log-transform the dependent variable.",
+            "thesisNote": "Dependent variable log transformation was implemented to remedy heteroscedastic residuals."
+          }
+        ]
+      },
+      {
+        "id": "normal",
+        "name": "Normality of Residuals",
+        "how": "Normal Q-Q plot of studentized residuals; histogram with overlaid normal density; Shapiro-Wilk test on residuals.",
+        "threshold": "Residual points closely track the 45-degree diagonal; robust for coefficient estimation when n ≥ 50, but affects confidence and prediction intervals.",
+        "remedies": [
+          {
+            "label": "Moderate departure from normality with adequate n (n ≥ 50)",
+            "consequence": "Central Limit Theorem preserves asymptotic normality of regression coefficients.",
+            "action": "Report diagnostic Q-Q plot and compute 95% bootstrap confidence intervals for all regression coefficients.",
+            "thesisNote": "Despite mild residual skew, bootstrap confidence intervals (2,000 resamples) corroborated all statistical conclusions."
+          },
+          {
+            "label": "Severe skew or heavy tails in small sample",
+            "consequence": "Inflated error rates and biased p-values.",
+            "action": "Transform dependent variable (Box-Cox or log) or fit robust regression (MM-estimator).",
+            "thesisNote": "A Box-Cox transformation was applied to achieve residual normality in the regression model."
+          }
+        ]
+      },
+      {
+        "id": "indep",
+        "name": "Independence of Residuals",
+        "how": "Examine Durbin-Watson statistic; verify participants were sampled independently without nesting in institutions or repeated measures.",
+        "threshold": "Durbin-Watson statistic between 1.5 and 2.5; zero clustering across units.",
+        "remedies": [
+          {
+            "label": "Clustered / nested sample (students in schools, patients in hospitals)",
+            "consequence": "Standard errors severely underestimated; high false-positive rate.",
+            "action": "Use Linear Mixed-Effects Models (Multilevel Modeling) with random intercepts for clusters.",
+            "thesisNote": "Because participants were clustered across 12 institutions, a multilevel linear mixed model was specified."
+          },
+          {
+            "label": "Serial correlation in time-series data",
+            "consequence": "Autocorrelated errors.",
+            "action": "Apply Autoregressive error models or Newey-West standard errors.",
+            "thesisNote": "Serial autocorrelation was corrected via Newey-West HAC standard errors."
+          }
+        ]
+      },
+      {
+        "id": "influential",
+        "name": "Absence of Disproportionately Influential Cases",
+        "how": "Inspect Cook's distance (D), leverage values (hat values), and DFBETAS for each predictor.",
+        "threshold": "Cook's D < 4/n; max |DFBETAS| < 2/√n; leverage < 2(p+1)/n.",
+        "remedies": [
+          {
+            "label": "Influential cases identified (Cook's D > 4/n)",
+            "consequence": "A small number of participants disproportionately dictate regression slopes.",
+            "action": "Perform sensitivity analysis: report models with and without influential observations side-by-side.",
+            "thesisNote": "A sensitivity analysis excluding three high-influence cases (Cook's D > 4/n) showed that all predictor effects remained unchanged in sign and significance."
+          },
+          {
+            "label": "Pervasive outliers across predictors",
+            "consequence": "OLS estimates heavily distorted.",
+            "action": "Fit Robust MM-Regression or Least Trimmed Squares.",
+            "thesisNote": "Robust MM-estimation was utilized to ensure regression findings were resistant to multivariate outliers."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "logreg",
+    "category": "Regression Models",
+    "catId": "regression",
+    "name": "Binary Logistic Regression",
+    "desc": "Models the log-odds of a binary outcome as a linear combination of one or more continuous and categorical predictors.",
+    "companionNote": "In Stat Test Selector: Binary outcome with continuous or mixed predictors.",
+    "items": [
+      {
+        "id": "binary",
+        "name": "Dichotomous (Binary) Dependent Variable",
+        "how": "Verify that the dependent variable has exactly two distinct levels, coded 0 (reference/non-event) and 1 (event of interest).",
+        "threshold": "Strictly binary 0/1 outcome with clear substantive coding.",
+        "remedies": [
+          {
+            "label": "Outcome has 3+ unordered categories",
+            "consequence": "Binary logit cannot model multi-categorical choices.",
+            "action": "Use Multinomial Logistic Regression.",
+            "thesisNote": "Because the dependent variable had three unordered categories, multinomial logistic regression was estimated."
+          },
+          {
+            "label": "Outcome is ordered categories (e.g., Likert rating)",
+            "consequence": "Discarding order reduces efficiency.",
+            "action": "Use Ordinal Logistic Regression (Proportional Odds model).",
+            "thesisNote": "An ordinal logistic regression model was specified to preserve the ordered structure of the outcome."
+          },
+          {
+            "label": "Outcome is continuous",
+            "consequence": "Logistic link is inappropriate for unbounded continuous variables.",
+            "action": "Use Multiple Linear Regression.",
+            "thesisNote": "Continuous dependent variables were modeled via multiple linear regression."
+          }
+        ]
+      },
+      {
+        "id": "linearity",
+        "name": "Linearity of the Logit for Continuous Predictors",
+        "how": "Run the Box-Tidwell test (add interaction terms of continuous predictors with their natural log: X · ln(X)), or plot continuous predictors against logit residuals via LOESS.",
+        "threshold": "Box-Tidwell interaction p > .05; empirical relationship between predictor and log-odds is approximately linear.",
+        "remedies": [
+          {
+            "label": "Non-linear logit relationship detected (Box-Tidwell p < .05)",
+            "consequence": "Biased odds ratios and inaccurate predictive probabilities.",
+            "action": "Transform the predictor (log, polynomial, or spline terms) or use Generalized Additive Models (GAM).",
+            "thesisNote": "Non-linearity in log-odds was addressed by incorporating a natural log transformation of the predictor."
+          },
+          {
+            "label": "Threshold or threshold-step effect",
+            "consequence": "Smooth linear logit fails to capture distinct category shifts.",
+            "action": "Discretize the predictor into substantive theoretical bins (e.g. age brackets) as a pragmatic solution.",
+            "thesisNote": "The continuous predictor was binned into clinical threshold categories following evidence-based guidelines."
+          }
+        ]
+      },
+      {
+        "id": "multicol",
+        "name": "Absence of Severe Multicollinearity",
+        "how": "Compute Variance Inflation Factors (VIF) and Tolerances (1/VIF) from linear diagnostics; check correlation matrix.",
+        "threshold": "VIF < 5 across all predictors (VIF > 10 indicates severe inflation); pairwise r < 0.70.",
+        "remedies": [
+          {
+            "label": "High VIF between predictors (VIF > 5)",
+            "consequence": "Inflates standard errors of coefficients, making significant predictors appear non-significant.",
+            "action": "Drop redundant collinear variable or combine collinear predictors into a composite index.",
+            "thesisNote": "Due to high multicollinearity (VIF > 6.0), redundant items were combined into a composite index."
+          },
+          {
+            "label": "High dimensional correlated predictors",
+            "consequence": "Model overfitting and parameter instability.",
+            "action": "Apply L2 Ridge Regression or Elastic Net regularization.",
+            "thesisNote": "Penalized logistic regression with elastic net regularization was applied to handle correlated predictors."
+          }
+        ]
+      },
+      {
+        "id": "epv",
+        "name": "Adequate Events per Variable (EPV Rule)",
+        "how": "Calculate EPV = min(number of events, number of non-events) / (number of predictor parameters).",
+        "threshold": "EPV ≥ 10 as conventional rule of thumb (EPV ≥ 15–20 preferred for variable selection).",
+        "remedies": [
+          {
+            "label": "Low EPV (EPV < 10) due to small sample or rare event",
+            "consequence": "Overfitting, biased odds ratios away from zero, and unstable confidence intervals.",
+            "action": "Pre-screen and reduce number of predictors based on substantive theory, or use Firth's Penalized Likelihood Logistic Regression.",
+            "thesisNote": "Given a modest events-per-variable ratio (EPV = 8), Firth's penalized logistic regression was employed to correct small-sample bias."
+          },
+          {
+            "label": "Extremely rare outcome (< 5% prevalence)",
+            "consequence": "Standard maximum likelihood estimates suffer severe small-sample bias.",
+            "action": "Fit Firth's penalized logit or complementary log-log regression.",
+            "thesisNote": "For rare event modeling (< 5% prevalence), Firth's penalized likelihood estimation was utilized."
+          }
+        ]
+      },
+      {
+        "id": "separation",
+        "name": "Absence of Complete or Quasi-Complete Separation",
+        "how": "Inspect cross-tabulations of categorical predictors by outcome; check continuous predictors for perfect threshold discrimination; verify that coefficient standard errors are reasonable (< 5).",
+        "threshold": "No predictor or combination of predictors perfectly classifies the outcome; standard errors are stable and finite.",
+        "remedies": [
+          {
+            "label": "Complete or quasi-complete separation present (SE > 100)",
+            "consequence": "Maximum likelihood estimates diverge to infinity; Wald test p-values are invalid.",
+            "action": "Use Firth's Penalized Logistic Regression or Bayesian logistic regression with weakly informative priors (e.g. Cauchy or Student-t priors).",
+            "thesisNote": "Due to quasi-complete separation in one subcategory, Firth's penalized likelihood approach was implemented."
+          },
+          {
+            "label": "Extreme influential observations (Cook's distance > 1)",
+            "consequence": "A few atypical cases unduly pull regression coefficients.",
+            "action": "Examine leverage and standardized residuals; report sensitivity analysis with and without influential cases.",
+            "thesisNote": "Sensitivity analyses demonstrated that estimated odds ratios remained stable after excluding high-leverage observations."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "poisson",
+    "category": "Regression Models",
+    "catId": "regression",
+    "name": "Poisson Regression",
+    "desc": "Models event counts occurring per unit of time, area, or volume as a function of explanatory variables.",
+    "companionNote": "In Stat Test Selector: Count outcome (events/visits/errors).",
+    "items": [
+      {
+        "id": "count",
+        "name": "Non-Negative Integer Count Outcome",
+        "how": "Inspect dependent variable values: must consist of non-negative integers (0, 1, 2, 3...) representing event counts.",
+        "threshold": "Discrete whole numbers ≥ 0; no negative values or continuous fractions.",
+        "remedies": [
+          {
+            "label": "Outcome is continuous or rate",
+            "consequence": "Poisson probability mass function applies only to discrete counts.",
+            "action": "Use Linear Regression (with log transformation if skewed) or Gamma regression.",
+            "thesisNote": "Because the outcome was a continuous rate, Gamma regression with a log link was estimated."
+          },
+          {
+            "label": "Outcome is binary (0 vs 1 only)",
+            "consequence": "Poisson probability model assumes infinite potential count ceiling.",
+            "action": "Use Binary Logistic Regression.",
+            "thesisNote": "Dichotomous outcomes were analyzed via binary logistic regression."
+          }
+        ]
+      },
+      {
+        "id": "equidisp",
+        "name": "Equidispersion (Conditional Mean ≈ Conditional Variance)",
+        "how": "Calculate the dispersion parameter: Dispersion = Residual Deviance / Residual df (or Pearson chi2 / df).",
+        "threshold": "Dispersion ratio close to 1.0 (roughly between 0.8 and 1.2; alert if > 1.5 indicates overdispersion).",
+        "remedies": [
+          {
+            "label": "Overdispersion present (Dispersion > 1.5)",
+            "consequence": "Standard Poisson regression underestimates standard errors, leading to spuriously narrow confidence intervals and false positive p-values.",
+            "action": "Switch to Negative Binomial Regression (models unobserved heterogeneity via dispersion parameter alpha).",
+            "thesisNote": "Substantial overdispersion was detected (dispersion ratio = 2.4); consequently, a negative binomial regression model was specified."
+          },
+          {
+            "label": "Moderate overdispersion without changing mean model",
+            "consequence": "Slight standard error shrinkage.",
+            "action": "Fit Quasi-Poisson regression with robust sandwich standard errors.",
+            "thesisNote": "Quasi-Poisson regression with robust Huber-White standard errors was used to adjust for moderate overdispersion."
+          },
+          {
+            "label": "Underdispersion present (Dispersion < 0.7)",
+            "consequence": "Standard errors are overestimated, losing power.",
+            "action": "Use Generalized Poisson or Conway-Maxwell-Poisson regression.",
+            "thesisNote": "Underdispersed count data were modeled via generalized Poisson regression."
+          }
+        ]
+      },
+      {
+        "id": "zeros",
+        "name": "Absence of Structural Excess Zeros",
+        "how": "Compare the observed proportion of zeros in your sample against the proportion predicted by the Poisson distribution.",
+        "threshold": "Observed zero proportion roughly matches exp(-mean); no dual zero-generating process.",
+        "remedies": [
+          {
+            "label": "Excess zeros present from two distinct populations (e.g. never-users vs current-users)",
+            "consequence": "Standard Poisson/negative binomial misfits the zero count, biasing rate ratios.",
+            "action": "Fit a Zero-Inflated Poisson (ZIP) or Zero-Inflated Negative Binomial (ZINB) model; evaluate using Vuong test.",
+            "thesisNote": "Excess zeros warranted a zero-inflated negative binomial (ZINB) model, supported by a significant Vuong test (p < .001)."
+          },
+          {
+            "label": "Zeros represent a separate hurdle process",
+            "consequence": "Single equation cannot capture initiation vs frequency.",
+            "action": "Fit a Two-Part Hurdle Model (binary logit for zero vs positive; truncated count model for positives).",
+            "thesisNote": "A two-part hurdle model was estimated to distinguish participation decisions from count frequency."
+          }
+        ]
+      },
+      {
+        "id": "exposure",
+        "name": "Log-Linearity & Exposure Offset Specification",
+        "how": "Check linearity of predictors against log-rate; verify that observations with differing exposure windows include an offset term: offset = log(time/population).",
+        "threshold": "Linear relationship between continuous predictors and log of rate; offset variable specified if exposure varies.",
+        "remedies": [
+          {
+            "label": "Varying observation periods across subjects omitted",
+            "consequence": "Event counts reflect unequal exposure durations rather than true rate differences.",
+            "action": "Add offset = log(exposure_duration) to the model specification.",
+            "thesisNote": "An offset term equal to log(observation months) was included to model incidence rate per unit time."
+          },
+          {
+            "label": "Non-linear relationship between predictor and log-rate",
+            "consequence": "Model misspecification.",
+            "action": "Add polynomial or spline terms to continuous predictors.",
+            "thesisNote": "Non-linear predictor effects were captured using quadratic terms."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mnlogit",
+    "category": "Regression Models",
+    "catId": "regression",
+    "name": "Multinomial Logistic Regression",
+    "desc": "Models the probability of membership in three or more unordered categorical outcome levels from explanatory variables.",
+    "companionNote": "In Stat Test Selector: Categorical outcome with 3+ levels and continuous or mixed predictors.",
+    "items": [
+      {
+        "id": "nominal",
+        "name": "Nominal Outcome with 3+ Unordered Categories",
+        "how": "Verify outcome variable has k ≥ 3 mutually exclusive, unordered categories with a clearly designated reference level.",
+        "threshold": "Unordered categorical variable; explicit substantive rationale for reference category.",
+        "remedies": [
+          {
+            "label": "Outcome categories have a natural ordering (e.g. Low, Medium, High)",
+            "consequence": "Multinomial logit estimates separate logits per category, discarding ordinal ranking information and losing statistical power.",
+            "action": "Use Ordinal Logistic Regression (Proportional Odds Model).",
+            "thesisNote": "Because outcome categories were inherently ordered, ordinal logistic regression was specified."
+          },
+          {
+            "label": "Outcome has only 2 categories",
+            "consequence": "Over-parameterizes model with redundant equations.",
+            "action": "Use Binary Logistic Regression.",
+            "thesisNote": "For dichotomous outcomes, binary logistic regression was estimated."
+          }
+        ]
+      },
+      {
+        "id": "iia",
+        "name": "Independence of Irrelevant Alternatives (IIA)",
+        "how": "Run Hausman-McFadden test or Small-Hsiao test; theoretically examine whether adding/removing a choice alters relative odds between existing choices.",
+        "threshold": "Hausman-McFadden test p > .05; relative odds of choosing category A over B are independent of the availability of category C.",
+        "remedies": [
+          {
+            "label": "IIA assumption violated (close substitute choices exist)",
+            "consequence": "Odds ratios become severely biased when alternatives share unobserved correlated attributes.",
+            "action": "Use Nested Logit Model or Multinomial Probit Model (relaxes uncorrelated error assumption).",
+            "thesisNote": "Due to violation of the IIA assumption (Hausman-McFadden p < .05), a nested logit model was estimated."
+          },
+          {
+            "label": "Heterogeneous individual preferences across choices",
+            "consequence": "Fixed coefficients fail to capture individual choice variance.",
+            "action": "Fit a Mixed Logit (Random Parameters Logit) model.",
+            "thesisNote": "A random parameters mixed logit model was adopted to accommodate taste heterogeneity."
+          }
+        ]
+      },
+      {
+        "id": "multicol",
+        "name": "Absence of Severe Multicollinearity",
+        "how": "Compute VIF values on predictors; check correlation matrix among independent variables.",
+        "threshold": "VIF < 5 across all predictors; no pair of predictors with r > 0.75.",
+        "remedies": [
+          {
+            "label": "High multicollinearity among predictors",
+            "consequence": "Inflates standard errors across all multinomial equations simultaneously.",
+            "action": "Remove redundant predictor or combine collinear items into a composite index.",
+            "thesisNote": "Redundant collinear predictors were consolidated into a single composite scale."
+          },
+          {
+            "label": "Many correlated predictors",
+            "consequence": "Overfitting in multi-equation parameter space.",
+            "action": "Use penalized multinomial regression (L1 Lasso or L2 Ridge).",
+            "thesisNote": "Penalized multinomial logistic regression with ridge regularization was fitted."
+          }
+        ]
+      },
+      {
+        "id": "epv",
+        "name": "Adequate Sample Size per Category (EPV Rule)",
+        "how": "Examine sample count in each outcome category relative to the number of predictor parameters.",
+        "threshold": "At least 10 to 15 events per estimated parameter in each category logit (EPV ≥ 10).",
+        "remedies": [
+          {
+            "label": "Sparse outcome categories (small n in some levels)",
+            "consequence": "Parameter estimates become unstable and confidence intervals explode.",
+            "action": "Collapse small, conceptually related categories into a single category.",
+            "thesisNote": "Low-frequency outcome categories were collapsed based on substantive theoretical affinity."
+          },
+          {
+            "label": "Small total sample size",
+            "consequence": "Maximum likelihood asymptotic standard errors fail.",
+            "action": "Use Firth's penalized multinomial logistic regression.",
+            "thesisNote": "Firth's penalized likelihood estimation was employed to mitigate small-sample bias."
+          }
+        ]
+      },
+      {
+        "id": "separation",
+        "name": "Absence of Complete or Quasi-Complete Separation",
+        "how": "Cross-tabulate categorical predictors by outcome; inspect standard errors of estimated coefficients for extreme values (SE > 50).",
+        "threshold": "No predictor cell perfectly predicts any outcome category; all coefficient standard errors are finite and reasonable.",
+        "remedies": [
+          {
+            "label": "Separation detected (infinite estimates or huge SE)",
+            "consequence": "Wald tests are completely invalidated.",
+            "action": "Collapse sparse predictor cells, remove problematic predictor, or use Firth's penalized likelihood estimation.",
+            "thesisNote": "Quasi-complete separation was resolved using Firth's penalized likelihood method."
+          },
+          {
+            "label": "Sparse predictor combinations",
+            "consequence": "Zero frequencies in high-dimensional cross-tabulations.",
+            "action": "Exclude non-informative high-order interaction terms.",
+            "thesisNote": "High-order interactions were excluded to maintain model estimability."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "chisq",
+    "category": "Categorical & Proportions",
+    "catId": "categorical",
+    "name": "Chi-Square Test of Independence (r × c)",
+    "desc": "Evaluates whether two categorical variables are statistically independent in a contingency table.",
+    "companionNote": "In Stat Test Selector: Two categorical variables cross-tabulated.",
+    "items": [
+      {
+        "id": "categorical",
+        "name": "Two Categorical Variables",
+        "how": "Verify that both variables represent categorical factors (nominal or ordinal).",
+        "threshold": "Contingency table cross-classifying participants across r rows and c columns.",
+        "remedies": [
+          {
+            "label": "One or both variables are continuous",
+            "consequence": "Categorizing continuous variables discards measurement variance and reduces statistical power.",
+            "action": "Use Logistic Regression (if DV is categorical) or Linear Regression / Correlation (if both continuous).",
+            "thesisNote": "Variables were retained on their continuous metric and modeled using regression rather than discretized."
+          },
+          {
+            "label": "Both variables are ordered categories (ordinal × ordinal)",
+            "consequence": "Standard chi-square ignores ordinal ranking information.",
+            "action": "Use Linear-by-Linear Association test or Spearman rank correlation.",
+            "thesisNote": "For ordered categorical variables, the Mantel-Haenszel linear-by-linear association test was reported."
+          }
+        ]
+      },
+      {
+        "id": "indep",
+        "name": "Independence of Observations",
+        "how": "Confirm that each participant contributes to exactly ONE cell in the cross-tabulation table.",
+        "threshold": "Total table count (N) equals the exact number of unique participants.",
+        "remedies": [
+          {
+            "label": "Paired / repeated categorical measurements (e.g. Pre vs Post)",
+            "consequence": "Violates cell independence; inflates false positive rate.",
+            "action": "Use McNemar's Test (for 2×2) or McNemar-Bowker test of symmetry (for r × r).",
+            "thesisNote": "Because categorical outcomes were measured repeatedly on the same subjects, McNemar's test was used."
+          },
+          {
+            "label": "Multi-select survey question (\"check all that apply\")",
+            "consequence": "A single participant can appear in multiple categories.",
+            "action": "Analyze with multiple-response contingency tables (e.g. Rao-Scott correction) or separate binary logistic models.",
+            "thesisNote": "Multiple-response options were modeled as separate binary indicators."
+          }
+        ]
+      },
+      {
+        "id": "expected",
+        "name": "Adequate Expected Cell Counts (Cochran's Rule)",
+        "how": "Compute expected frequencies for each cell: E_ij = (Row Total × Column Total) / Grand Total.",
+        "threshold": "All expected counts ≥ 1, AND at least 80% of cells have expected counts ≥ 5.",
+        "remedies": [
+          {
+            "label": "Expected counts < 5 in 2×2 table",
+            "consequence": "Asymptotic chi-square distribution breaks down, inflating Type I error.",
+            "action": "Report Fisher's Exact Test.",
+            "thesisNote": "Because one cell had an expected count below 5, Fisher's exact test (two-sided) was reported."
+          },
+          {
+            "label": "Expected counts < 5 in r × c table (sparse contingency table)",
+            "consequence": "Chi-square p-value is unreliable.",
+            "action": "Collapse logically adjacent sparse categories, or compute Fisher-Freeman-Halton exact test / Monte Carlo simulated p-values (e.g. 10,000 replications).",
+            "thesisNote": "Due to sparse expected counts (< 5 in > 20% of cells), statistical significance was evaluated using Monte Carlo exact tests with 10,000 resamples."
+          },
+          {
+            "label": "Very small total sample size (N < 20)",
+            "consequence": "Approximation invalid across table.",
+            "action": "Use exact non-parametric tests exclusively.",
+            "thesisNote": "Given the small overall sample size, exact tests were conducted."
+          }
+        ]
+      },
+      {
+        "id": "exhaustive",
+        "name": "Mutually Exclusive and Exhaustive Categories",
+        "how": "Examine codebook definitions to ensure category levels are distinct and cover all valid responses.",
+        "threshold": "No overlapping categories; every respondent fits into one and only one classification.",
+        "remedies": [
+          {
+            "label": "Ambiguous or overlapping definitions",
+            "consequence": "Misclassification introduces measurement error.",
+            "action": "Re-code categories based on strict mutually exclusive rules.",
+            "thesisNote": "Response categories were recoded to ensure mutually exclusive classification."
+          },
+          {
+            "label": "High frequency of \"Other / Unspecified\"",
+            "consequence": "Uninformative residual category can distort distribution.",
+            "action": "Exclude uninformative missing cases or recode into specific substantive groups if viable.",
+            "thesisNote": "Responses categorized as 'unspecified' were omitted following standard missing-data protocol."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mcnemar",
+    "category": "Categorical & Proportions",
+    "catId": "categorical",
+    "name": "McNemar's Test",
+    "desc": "Tests for changes in paired binary proportions across two repeated measurement points or matched pairs.",
+    "companionNote": "In Stat Test Selector: Paired binary outcome (same subjects measured twice).",
+    "items": [
+      {
+        "id": "paired",
+        "name": "Paired Binary / Dichotomous Outcome",
+        "how": "Confirm that the outcome variable is binary (0/1, pass/fail, yes/no) and measured twice on the exact same subjects.",
+        "threshold": "2×2 paired contingency table documenting concordant (a, d) and discordant (b, c) pairs.",
+        "remedies": [
+          {
+            "label": "Independent groups (not paired)",
+            "consequence": "Cannot form discordant change pairs.",
+            "action": "Use Chi-Square Test of Independence or Fisher's Exact Test.",
+            "thesisNote": "As the comparison was between independent groups, a 2×2 chi-square test was performed."
+          },
+          {
+            "label": "Categorical outcome with 3+ paired levels",
+            "consequence": "McNemar 2×2 does not support multi-category shifts.",
+            "action": "Use McNemar-Bowker test of symmetry.",
+            "thesisNote": "For the 3-level repeated categorical outcome, the McNemar-Bowker test of symmetry was conducted."
+          },
+          {
+            "label": "Continuous paired outcome",
+            "consequence": "Dichotomizing continuous scale loses information.",
+            "action": "Use Paired-Samples t-Test or Wilcoxon Signed-Rank Test.",
+            "thesisNote": "Continuous pre-post ratings were evaluated using a paired-samples t-test."
+          }
+        ]
+      },
+      {
+        "id": "discordant",
+        "name": "Adequate Discordant Pair Count",
+        "how": "Check the count of discordant pairs: b (Yes→No) and c (No→Yes).",
+        "threshold": "Sum of discordant pairs (b + c) ≥ 25 for asymptotic chi-square approximation with continuity correction.",
+        "remedies": [
+          {
+            "label": "Discordant pairs sum < 25 (b + c < 25)",
+            "consequence": "Asymptotic chi-square distribution overestimates significance.",
+            "action": "Use the Exact McNemar's Test (based on cumulative binomial distribution with p = 0.5).",
+            "thesisNote": "Because the number of discordant pairs was modest (b + c = 16 < 25), the exact two-sided McNemar binomial test was reported."
+          },
+          {
+            "label": "Very few changes observed (b + c < 5)",
+            "consequence": "Extremely low statistical power to detect transition.",
+            "action": "Report descriptive transition percentages and discuss stability of response.",
+            "thesisNote": "Descriptive stability percentages were reported given the small number of discordant transitions."
+          }
+        ]
+      },
+      {
+        "id": "indep",
+        "name": "Independence Across Subject Pairs",
+        "how": "Verify that pairs of observations from different participants are mutually independent.",
+        "threshold": "Independent participant sampling; no clustering (e.g. couples or classroom clusters).",
+        "remedies": [
+          {
+            "label": "Participants nested within clusters",
+            "consequence": "Clustering distorts binomial variance.",
+            "action": "Use Generalized Linear Mixed Models (GLMM) with binary logit link and cluster random effects.",
+            "thesisNote": "To account for participant clustering, a generalized linear mixed model with binary logit link was fitted."
+          },
+          {
+            "label": "More than two time points (e.g. Pre, Post, 6-Month)",
+            "consequence": "Pairwise McNemar tests fail to evaluate longitudinal trajectory.",
+            "action": "Use Cochran's Q Test followed by Dunn post-hoc tests.",
+            "thesisNote": "For repeated binary assessments across three time intervals, Cochran's Q test was evaluated."
+          }
+        ]
+      }
+    ]
+  }
+];
+
+// Application State
+const STORAGE_KEY = 'assumption_checklist_state_v1';
+let state = {
+  currentTestId: 'ttest',
+  currentCat: 'all',
+  checks: {}, // key: testId + '__' + itemId -> boolean
+  remedies: {} // key: testId + '__' + itemId -> selectedIndex (string or number)
+};
+
+// Load saved state from localStorage safely
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') {
+        if (parsed.checks) state.checks = parsed.checks;
+        if (parsed.remedies) state.remedies = parsed.remedies;
+        if (parsed.currentTestId && DB.some(t => t.id === parsed.currentTestId)) {
+          state.currentTestId = parsed.currentTestId;
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('LocalStorage unavailable or corrupted:', e);
+  }
+
+  // Check URL hash or query param (overrides localStorage test ID)
+  const hash = window.location.hash.replace('#', '').trim();
+  const urlParams = new URLSearchParams(window.location.search);
+  const paramTest = urlParams.get('test');
+  const targetId = paramTest || hash;
+  if (targetId && DB.some(t => t.id === targetId)) {
+    state.currentTestId = targetId;
+  }
+}
+
+// Save state to localStorage safely
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      currentTestId: state.currentTestId,
+      checks: state.checks,
+      remedies: state.remedies
+    }));
+  } catch (e) {
+    console.warn('Failed to save to localStorage:', e);
+  }
+}
+
+function getCurrentTest() {
+  return DB.find(t => t.id === state.currentTestId) || DB[0];
+}
+
+// Render test banner & progress
+function renderBanner() {
+  const t = getCurrentTest();
+  document.getElementById('t-name').textContent = t.name;
+  document.getElementById('t-cat').textContent = t.category;
+  document.getElementById('t-desc').textContent = t.desc;
+  document.getElementById('t-companion').textContent = t.companionNote;
+
+  const total = t.items.length;
+  let checkedCount = 0;
+  t.items.forEach(item => {
+    const key = t.id + '__' + item.id;
+    if (state.checks[key]) checkedCount++;
+  });
+
+  const pct = Math.round((checkedCount / total) * 100);
+  const progCountEl = document.getElementById('prog-count');
+  const progPctEl = document.getElementById('prog-pct');
+  const progBarEl = document.getElementById('prog-bar');
+
+  progCountEl.textContent = checkedCount + ' of ' + total;
+  progPctEl.textContent = pct + '%';
+  progBarEl.style.width = pct + '%';
+
+  if (pct === 100) {
+    progPctEl.classList.add('all-done');
+    progPctEl.textContent = '100% — All Verified';
+  } else {
+    progPctEl.classList.remove('all-done');
+  }
+
+  // Sync test-select value
+  const sel = document.getElementById('test-select');
+  if (sel.value !== t.id) {
+    sel.value = t.id;
+  }
+}
+
+// Render checklist items
+function renderItems() {
+  const t = getCurrentTest();
+  const container = document.getElementById('items-container');
+  container.innerHTML = '';
+
+  t.items.forEach((item, idx) => {
+    const itemKey = t.id + '__' + item.id;
+    const isChecked = !!state.checks[itemKey];
+    const selectedRemedyIdx = state.remedies[itemKey] !== undefined ? state.remedies[itemKey] : '';
+
+    const card = document.createElement('div');
+    card.className = 'item-card ' + (isChecked ? 'checked' : '');
+    card.setAttribute('data-id', item.id);
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'item-header';
+    header.innerHTML = `
+      <div class="custom-chk">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+      <div class="item-title-block">
+        <div class="item-sub-badge">Assumption ${idx + 1} of ${t.items.length}</div>
+        <div class="item-title">${item.name}</div>
+      </div>
+      <span class="status-pill ${isChecked ? 'verified' : 'pending'}">${isChecked ? '✓ Verified' : 'Pending'}</span>
+    `;
+
+    // Toggle on header click
+    header.addEventListener('click', () => {
+      state.checks[itemKey] = !state.checks[itemKey];
+      saveState();
+      renderBanner();
+      renderItems();
+    });
+
+    // Body
+    const body = document.createElement('div');
+    body.className = 'item-body';
+
+    // How to check
+    const howSec = document.createElement('div');
+    howSec.className = 'detail-sec';
+    howSec.innerHTML = `
+      <div class="sec-lbl how-lbl">
+        <span>🔍</span>
+        <span>Diagnostic Check (How to Test)</span>
+      </div>
+      <div class="sec-val">${item.how}</div>
+    `;
+    body.appendChild(howSec);
+
+    // Practical threshold
+    const threshSec = document.createElement('div');
+    threshSec.className = 'detail-sec';
+    threshSec.innerHTML = `
+      <div class="sec-lbl thresh-lbl">
+        <span>📏</span>
+        <span>Practical Threshold (Conventional Heuristic)</span>
+      </div>
+      <div class="sec-val">${item.threshold}</div>
+    `;
+    body.appendChild(threshSec);
+
+    // Remedy section
+    const remedyWrapper = document.createElement('div');
+    remedyWrapper.className = 'remedy-wrapper';
+
+    const remedyHeader = document.createElement('div');
+    remedyHeader.className = 'sec-lbl remedy-lbl';
+    remedyHeader.innerHTML = `
+      <span>⚠️</span>
+      <span>Decision Tree: If This Assumption Fails</span>
+    `;
+    remedyWrapper.appendChild(remedyHeader);
+
+    // Dropdown
+    const select = document.createElement('select');
+    select.className = 'remedy-select';
+    let optsHtml = '<option value="">(Optional) Select diagnostic scenario / explore remedies...</option>';
+    item.remedies.forEach((rem, rIdx) => {
+      const isSel = selectedRemedyIdx !== '' && Number(selectedRemedyIdx) === rIdx;
+      optsHtml += `<option value="${rIdx}" ${isSel ? 'selected' : ''}>${rIdx + 1}. ${rem.label}</option>`;
+    });
+    select.innerHTML = optsHtml;
+
+    // Remedy Detail Box
+    const detailBox = document.createElement('div');
+    detailBox.className = 'remedy-detail-card ' + (selectedRemedyIdx === '' ? 'hidden' : '');
+
+    function updateRemedyDetail(idxVal) {
+      if (idxVal === '' || isNaN(Number(idxVal))) {
+        detailBox.classList.add('hidden');
+        detailBox.innerHTML = '';
+      } else {
+        const rData = item.remedies[Number(idxVal)];
+        detailBox.classList.remove('hidden');
+        detailBox.innerHTML = `
+          <div class="remedy-row">
+            <span class="remedy-row-title">Statistical Consequence:</span>
+            <span class="remedy-row-text">${rData.consequence}</span>
+          </div>
+          <div class="remedy-row" style="margin-top:0.35rem">
+            <span class="remedy-row-title" style="color:var(--ok)">Recommended Remedy / Action:</span>
+            <span class="remedy-row-text">${rData.action}</span>
+          </div>
+          <div class="remedy-row" style="margin-top:0.35rem">
+            <span class="remedy-row-title" style="color:var(--acc)">Thesis Methodology Defense (Draft Note):</span>
+            <div class="thesis-quote">"${rData.thesisNote}"</div>
+          </div>
+        `;
+      }
+    }
+
+    if (selectedRemedyIdx !== '') {
+      updateRemedyDetail(selectedRemedyIdx);
+    }
+
+    select.addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (val === '') {
+        delete state.remedies[itemKey];
+      } else {
+        state.remedies[itemKey] = val;
+      }
+      saveState();
+      updateRemedyDetail(val);
+    });
+
+    remedyWrapper.appendChild(select);
+    remedyWrapper.appendChild(detailBox);
+    body.appendChild(remedyWrapper);
+
+    card.appendChild(header);
+    card.appendChild(body);
+    container.appendChild(card);
+  });
+}
+
+// Generate plain text / markdown summary for copying
+function generateSummaryText() {
+  const t = getCurrentTest();
+  const now = new Date().toISOString().split('T')[0];
+  let verifiedCount = 0;
+  t.items.forEach(it => {
+    if (state.checks[t.id + '__' + it.id]) verifiedCount++;
+  });
+  const pct = Math.round((verifiedCount / t.items.length) * 100);
+
+  let text = `### Statistical Assumption Summary: ${t.name}
+Generated via Assumption Checklist Tool (Author: F. Matakupan)
+Date: ${now}
+Status: ${verifiedCount} of ${t.items.length} assumptions verified (${pct}%)
+
+Overview:
+${t.desc}
+
+Checklist Details:
+`;
+
+  t.items.forEach((item, idx) => {
+    const key = t.id + '__' + item.id;
+    const isChecked = !!state.checks[key];
+    const mark = isChecked ? '[✓] VERIFIED' : '[ ] PENDING';
+    text += `
+${idx + 1}. ${mark} — ${item.name}
+`;
+    text += `   • Diagnostic Check: ${item.how}
+`;
+    text += `   • Practical Threshold: ${item.threshold}
+`;
+
+    const rIdx = state.remedies[key];
+    if (rIdx !== undefined && rIdx !== '') {
+      const rem = item.remedies[Number(rIdx)];
+      text += `   • Violated / Scenario: ${rem.label}
+`;
+      text += `   • Action Taken: ${rem.action}
+`;
+      text += `   • Thesis Methodology Note: "${rem.thesisNote}"
+`;
+    }
+  });
+
+  text += `
+Disclaimer: Educational diagnostic checklist, not statistical advice. Verify with supervisor before final thesis submission.`;
+  return text;
+}
+
+// Show Toast
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  const msgEl = document.getElementById('toast-msg');
+  msgEl.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => {
+    toast.classList.remove('show');
+  }, 2600);
+}
+
+// Copy to Clipboard
+function copyToClipboard(text, successMsg) {
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast(successMsg || 'Summary copied to clipboard!');
+    }).catch(() => {
+      fallbackCopy(text, successMsg);
+    });
+  } else {
+    fallbackCopy(text, successMsg);
+  }
+}
+
+function fallbackCopy(text, successMsg) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showToast(successMsg || 'Summary copied to clipboard!');
+  } catch (err) {
+    showToast('Failed to copy. Please use View Formatted Summary.');
+  }
+  document.body.removeChild(ta);
+}
+
+// Switch Test
+function switchTest(newTestId) {
+  if (newTestId === state.currentTestId) return;
+  state.currentTestId = newTestId;
+  saveState();
+  window.location.hash = '#' + newTestId;
+  renderBanner();
+  renderItems();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Setup Event Listeners
+function setupEvents() {
+  // Test Selector Change
+  document.getElementById('test-select').addEventListener('change', (e) => {
+    switchTest(e.target.value);
+  });
+
+  // Category Pills Filter
+  document.querySelectorAll('.cat-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const cat = btn.getAttribute('data-cat');
+      state.currentCat = cat;
+
+      // Filter options in select
+      const select = document.getElementById('test-select');
+      const optgroups = select.querySelectorAll('optgroup');
+
+      let firstMatchId = null;
+      optgroups.forEach(og => {
+        let hasVisible = false;
+        og.querySelectorAll('option').forEach(opt => {
+          const testObj = DB.find(t => t.id === opt.value);
+          if (cat === 'all' || testObj.catId === cat) {
+            opt.style.display = '';
+            hasVisible = true;
+            if (!firstMatchId) firstMatchId = opt.value;
+          } else {
+            opt.style.display = 'none';
+          }
+        });
+        og.style.display = hasVisible ? '' : 'none';
+      });
+
+      // If current test is hidden in this category, switch to first match
+      const curTest = getCurrentTest();
+      if (cat !== 'all' && curTest.catId !== cat && firstMatchId) {
+        switchTest(firstMatchId);
+      }
+    });
+  });
+
+  // Copy Summary Button
+  document.getElementById('btn-copy-summary').addEventListener('click', () => {
+    const text = generateSummaryText();
+    copyToClipboard(text, '✓ Summary copied to clipboard!');
+  });
+
+  // View Formatted Summary Modal
+  const modal = document.getElementById('summary-modal');
+  const textarea = document.getElementById('summary-textarea');
+  const modalClose = document.getElementById('modal-close');
+  const modalBtnClose = document.getElementById('modal-btn-close');
+  const modalBtnCopy = document.getElementById('modal-btn-copy');
+
+  document.getElementById('btn-view-summary').addEventListener('click', () => {
+    textarea.value = generateSummaryText();
+    modal.classList.add('open');
+  });
+
+  modalClose.addEventListener('click', () => modal.classList.remove('open'));
+  modalBtnClose.addEventListener('click', () => modal.classList.remove('open'));
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.classList.remove('open');
+  });
+
+  modalBtnCopy.addEventListener('click', () => {
+    copyToClipboard(textarea.value, '✓ Summary copied to clipboard!');
+    modal.classList.remove('open');
+  });
+
+  // Reset Test Button
+  document.getElementById('btn-reset-test').addEventListener('click', () => {
+    const t = getCurrentTest();
+    if (confirm(`Reset all checked items and remedy selections for "${t.name}"?`)) {
+      t.items.forEach(item => {
+        const key = t.id + '__' + item.id;
+        delete state.checks[key];
+        delete state.remedies[key];
+      });
+      saveState();
+      renderBanner();
+      renderItems();
+      showToast(`Reset checklist for ${t.name}`);
+    }
+  });
+
+  // Hashchange listener
+  window.addEventListener('hashchange', () => {
+    const hash = window.location.hash.replace('#', '').trim();
+    if (hash && DB.some(t => t.id === hash) && hash !== state.currentTestId) {
+      switchTest(hash);
+    }
+  });
+}
+
+// Initialization
+loadState();
+setupEvents();
+renderBanner();
+renderItems();
+</script>
+</body>
+</html>
