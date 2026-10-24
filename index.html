@@ -55,11 +55,21 @@
   .custom-chk { margin-top: 0.2rem; width: 22px; height: 22px; border: 2px solid var(--fg);
                 flex-shrink: 0; display: flex; align-items: center; justify-content: center;
                 background: transparent; }
+  .custom-chk svg { display: none; color: var(--bg); }
   .item-card.checked .custom-chk { background: var(--fg); }
   .item-card.checked .custom-chk svg { display: block; }
-  .item-title { font-size: 16.5px; flex: 1; }
+  .item-title-block { flex: 1; }
+  .item-sub-badge { font-family: ui-monospace, Menlo, monospace; font-size: 11px;
+                    text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted);
+                    margin-bottom: 2px; }
+  .item-title { font-size: 16.5px; }
   .item-card.checked .item-title { color: var(--muted); text-decoration: line-through;
                                    text-decoration-thickness: 1px; }
+  .status-pill { font-family: ui-monospace, Menlo, monospace; font-size: 11px;
+                 text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 9px;
+                 border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+  .status-pill.verified { border-color: var(--fg); color: var(--fg); background: var(--fg);
+                          color: var(--bg); }
 
   .item-body { margin-top: 10px; padding-left: 34px; }
   .detail-sec { margin-bottom: 10px; font-size: 15px; }
