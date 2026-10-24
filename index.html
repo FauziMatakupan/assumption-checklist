@@ -323,6 +323,11 @@ h1 {
   cursor: pointer;
   user-select: none;
 }
+.item-header:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
 .custom-chk {
   margin-top: 0.15rem;
   width: 22px;
@@ -743,7 +748,7 @@ h1 {
       <p>
         <a href="https://fauzimatakupan.github.io/stat-test-selector/" target="_blank" rel="noopener">← Statistical Test Selector (Free Tool #1)</a>
         &nbsp;•&nbsp;
-        <a href="https://github.com/FauziMatakupan/stat-test-selector" target="_blank" rel="noopener">GitHub Project Repository</a>
+        <a href="https://github.com/FauziMatakupan/assumption-checklist" target="_blank" rel="noopener">GitHub Project Repository</a>
       </p>
     </div>
     <p>Author: <strong>F. Matakupan</strong> • Built for empirical thesis and academic research workflows.</p>
@@ -847,7 +852,7 @@ const DB = [
           {
             "label": "Skewness due to bounded positive data (reaction times, costs)",
             "consequence": "Distribution is right-skewed with long positive tail.",
-            "action": "Apply a logarithmic or square root transformation before re-checking normality.",
+            "action": "Apply the same logarithmic or square-root transformation to BOTH the outcome data and the hypothesized constant μ₀ before re-checking normality — transforming only the data shifts the test against the wrong null value.",
             "thesisNote": "A natural logarithmic transformation was applied to correct positive skew prior to parametric testing."
           }
         ]
@@ -969,7 +974,7 @@ const DB = [
           {
             "label": "Unequal variances with severely skewed small samples",
             "consequence": "Both normality and homoscedasticity violated simultaneously.",
-            "action": "Use the Brunner-Munzel test (generalized rank test robust to heteroscedasticity) or Mann-Whitney U.",
+            "action": "Use the Brunner-Munzel test (generalized rank test robust to heteroscedasticity); reserve Mann-Whitney U for when distributions have similar shapes, since unequal variances change what MWU actually tests.",
             "thesisNote": "Due to joint violations of normality and homoscedasticity, the Brunner-Munzel test was employed."
           }
         ]
@@ -2467,7 +2472,7 @@ const DB = [
           {
             "label": "More than two time points (e.g. Pre, Post, 6-Month)",
             "consequence": "Pairwise McNemar tests fail to evaluate longitudinal trajectory.",
-            "action": "Use Cochran's Q Test followed by Dunn post-hoc tests.",
+            "action": "Use Cochran's Q Test followed by pairwise McNemar tests with Bonferroni adjustment for the post-hoc comparisons (Dunn's procedure belongs to Kruskal-Wallis, not Cochran's Q).",
             "thesisNote": "For repeated binary assessments across three time intervals, Cochran's Q test was evaluated."
           }
         ]
@@ -2586,6 +2591,10 @@ function renderItems() {
     // Header
     const header = document.createElement('div');
     header.className = 'item-header';
+    header.tabIndex = 0;
+    header.setAttribute('role', 'checkbox');
+    header.setAttribute('aria-checked', String(isChecked));
+    header.setAttribute('aria-label', item.name);
     header.innerHTML = `
       <div class="custom-chk">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -2603,8 +2612,17 @@ function renderItems() {
     header.addEventListener('click', () => {
       state.checks[itemKey] = !state.checks[itemKey];
       saveState();
+      card.classList.toggle('checked', !!state.checks[itemKey]);
+      header.setAttribute('aria-checked', String(!!state.checks[itemKey]));
       renderBanner();
-      renderItems();
+      // DOM update minimal: hanya kartu ini + banner, bukan rebuild seluruh daftar
+    });
+
+    header.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        header.click();
+      }
     });
 
     // Body
