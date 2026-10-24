@@ -33,9 +33,10 @@
   .test-picker label { font-family: ui-monospace, Menlo, monospace; font-size: 12px;
                        text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
   select#test-select {
-    flex: 1; font-family: Georgia, serif; font-size: 16px; padding: 9px 8px;
+    flex: 1; min-width: 0; font-family: Georgia, serif; font-size: 15px; padding: 9px 22px 9px 4px;
     border: none; border-bottom: 2px solid var(--fg); background: transparent; color: var(--fg);
-    cursor: pointer; border-radius: 0; appearance: auto;
+    cursor: pointer; border-radius: 0; appearance: auto; text-overflow: ellipsis; white-space: nowrap;
+    overflow: hidden; width: 100%; box-sizing: border-box; max-width: 100%;
   }
   select#test-select:focus { outline: none; border-bottom-width: 2px; }
 
@@ -51,6 +52,8 @@
   .item-card.checked { }
   .item-header { display: flex; align-items: flex-start; gap: 12px; cursor: pointer;
                  user-select: none; }
+  .custom-chk { margin-top: 1.6rem; }  /* sejajar judul utama, bukan sub-badge */
+  @media (min-width: 561px) { .custom-chk { margin-top: 0.3rem; } }
   .item-header:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; }
   .custom-chk { margin-top: 0.2rem; width: 22px; height: 22px; border: 2px solid var(--fg);
                 flex-shrink: 0; display: flex; align-items: center; justify-content: center;
@@ -77,9 +80,10 @@
   .sec-lbl { font-family: ui-monospace, Menlo, monospace; font-size: 11px; text-transform: uppercase;
              letter-spacing: 0.1em; color: var(--muted); display: block; margin-bottom: 2px; }
   .remedy-wrapper { margin-top: 10px; }
-  .remedy-select { font-family: Georgia, serif; font-size: 15px; padding: 7px 6px; width: 100%;
-                   border: none; border-bottom: 1px solid var(--fg); background: transparent;
-                   color: var(--fg); cursor: pointer; border-radius: 0; }
+  .remedy-select { font-family: Georgia, serif; font-size: 14.5px; padding: 7px 22px 7px 4px; width: 100%;
+                   max-width: 100%; border: none; border-bottom: 1px solid var(--fg); background: transparent;
+                   color: var(--fg); cursor: pointer; border-radius: 0; text-overflow: ellipsis;
+                   white-space: nowrap; overflow: hidden; box-sizing: border-box; }
   .remedy-detail-card { margin-top: 8px; border-left: 3px solid var(--fg); padding: 10px 14px;
                         font-size: 14.5px; color: #333; font-style: italic; }
 
@@ -119,6 +123,10 @@
 
   @media (max-width: 560px) {
     body { font-size: 16px; }
+    .item-header { padding: 6px 0; }
+    .custom-chk { width: 30px; height: 30px; margin-top: 1.5rem; }
+    .test-picker { gap: 8px; }
+    .bar-row { flex-wrap: wrap; gap: 8px; }
     .wrap, .head-rule { padding: 0 22px; }
     h1 { font-size: 25px; }
     header { padding: 44px 0 28px; }
