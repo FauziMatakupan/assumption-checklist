@@ -3,673 +3,142 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Statistical Assumption Checklist — Free Interactive Research Tool</title>
-<meta name="description" content="Interactive diagnostic checklist for 17 common statistical tests. Check empirical assumptions, verify practical thresholds, and review decision trees if an assumption is violated. Free, client-side, saves progress locally.">
+<title>Assumption Checklist — Free Statistical Assumptions Checker</title>
+<meta name="description" content="Pick a statistical test, get an interactive checklist of its assumptions: how to check each one, the thresholds, and what to do when they fail. Free, no signup.">
 <style>
-:root {
-  --bg: #0f172a;
-  --card: #1e293b;
-  --card-border: #334155;
-  --card-hover: #26354a;
-  --acc: #38bdf8;
-  --acc-dim: rgba(56, 189, 248, 0.12);
-  --acc-hover: #7dd3fc;
-  --ok: #4ade80;
-  --ok-dim: rgba(74, 222, 128, 0.12);
-  --warn: #fbbf24;
-  --warn-dim: rgba(251, 191, 36, 0.12);
-  --txt: #e2e8f0;
-  --mut: #94a3b8;
-  --subtle: #64748b;
-  --danger: #f87171;
-}
+  :root { --fg: #111; --bg: #fff; --muted: #555; --line: #ccc; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: Georgia, "Times New Roman", serif; background: var(--bg); color: var(--fg);
+         line-height: 1.65; font-size: 17px; }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 0 28px; }
+  a { color: var(--fg); text-decoration: underline; text-underline-offset: 3px; }
+  a:hover { background: var(--fg); color: var(--bg); text-decoration: none; }
+  .mono { font-family: ui-monospace, Menlo, monospace; }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  background: var(--bg);
-  color: var(--txt);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 1.2rem 0.8rem;
-  line-height: 1.5;
-}
+  header { padding: 56px 0 32px; }
+  .head-rule { max-width: 680px; margin: 0 auto; padding: 0 28px 32px; border-bottom: 2px solid var(--fg); }
+  .kicker { font-family: ui-monospace, Menlo, monospace; font-size: 12px;
+            letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+  h1 { font-size: 30px; line-height: 1.2; margin-bottom: 12px; font-weight: normal; }
+  .lede { font-size: 17px; font-style: italic; color: var(--muted); }
 
-.wrap {
-  max-width: 820px;
-  width: 100%;
-}
+  .bar-row { display: flex; align-items: baseline; gap: 14px; padding: 18px 0 6px; }
+  .bar-row .mono-label { font-family: ui-monospace, Menlo, monospace; font-size: 12px;
+                          text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  .prog { height: 3px; background: var(--line); flex: 1; position: relative; top: -3px; }
+  .prog div { height: 100%; background: var(--fg); width: 0; transition: width .25s; }
+  #prog-count, #prog-pct { font-family: ui-monospace, Menlo, monospace; font-size: 13px; }
 
-/* Header */
-.top-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1.2rem;
-  font-size: 0.88rem;
-}
-.back-link {
-  color: var(--acc);
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-weight: 500;
-  padding: 0.35rem 0.65rem;
-  background: var(--card);
-  border: 1px solid var(--card-border);
-  border-radius: 6px;
-  transition: all 0.15s ease;
-}
-.back-link:hover {
-  background: #253347;
-  border-color: var(--acc);
-}
-.tool-tag {
-  background: var(--acc-dim);
-  color: var(--acc);
-  padding: 0.25rem 0.6rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  border: 1px solid rgba(56, 189, 248, 0.25);
-}
+  .test-picker { display: flex; align-items: baseline; gap: 10px; margin: 20px 0 4px; }
+  .test-picker label { font-family: ui-monospace, Menlo, monospace; font-size: 12px;
+                       text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  select#test-select {
+    flex: 1; font-family: Georgia, serif; font-size: 16px; padding: 9px 8px;
+    border: none; border-bottom: 2px solid var(--fg); background: transparent; color: var(--fg);
+    cursor: pointer; border-radius: 0; appearance: auto;
+  }
+  select#test-select:focus { outline: none; border-bottom-width: 2px; }
 
-h1 {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: #f8fafc;
-  margin-bottom: 0.4rem;
-  letter-spacing: -0.01em;
-}
-.sub {
-  color: var(--mut);
-  font-size: 0.95rem;
-  margin-bottom: 1.4rem;
-  line-height: 1.55;
-}
+  .banner { padding: 22px 0 8px; }
+  #t-cat { font-family: ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 0.1em;
+           text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 6px; }
+  #t-name { font-size: 24px; margin-bottom: 8px; }
+  #t-desc { color: var(--muted); font-size: 15.5px; }
+  #t-companion { display: block; margin-top: 6px; font-size: 14.5px; color: var(--muted); font-style: italic; }
 
-/* Category Filter Pills */
-.cat-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  margin-bottom: 1rem;
-}
-.cat-pill {
-  background: #152238;
-  border: 1px solid var(--card-border);
-  color: var(--mut);
-  padding: 0.4rem 0.85rem;
-  border-radius: 9999px;
-  font-size: 0.82rem;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  user-select: none;
-}
-.cat-pill:hover {
-  color: var(--txt);
-  border-color: var(--acc);
-}
-.cat-pill.active {
-  background: var(--acc);
-  color: #0f172a;
-  border-color: var(--acc);
-  font-weight: 600;
-}
+  #items-container { padding-top: 8px; }
+  .item-card { border-bottom: 1px solid var(--line); padding: 20px 0; }
+  .item-card.checked { }
+  .item-header { display: flex; align-items: flex-start; gap: 12px; cursor: pointer;
+                 user-select: none; }
+  .item-header:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; }
+  .custom-chk { margin-top: 0.2rem; width: 22px; height: 22px; border: 2px solid var(--fg);
+                flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+                background: transparent; }
+  .item-card.checked .custom-chk { background: var(--fg); }
+  .item-card.checked .custom-chk svg { display: block; }
+  .item-title { font-size: 16.5px; flex: 1; }
+  .item-card.checked .item-title { color: var(--muted); text-decoration: line-through;
+                                   text-decoration-thickness: 1px; }
 
-/* Selector Card */
-.selector-card {
-  background: var(--card);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-  padding: 1.1rem;
-  margin-bottom: 1.2rem;
-}
-.picker-row {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-.picker-label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--acc);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-.styled-select {
-  width: 100%;
-  background: #0f172a;
-  border: 1px solid var(--card-border);
-  color: var(--txt);
-  padding: 0.75rem 0.9rem;
-  border-radius: 8px;
-  font-size: 0.96rem;
-  outline: none;
-  cursor: pointer;
-  transition: border-color 0.15s;
-}
-.styled-select:focus {
-  border-color: var(--acc);
-}
-.styled-select optgroup {
-  background: #1e293b;
-  color: var(--acc);
-  font-weight: 600;
-}
-.styled-select option {
-  background: #0f172a;
-  color: var(--txt);
-}
+  .item-body { margin-top: 10px; padding-left: 34px; }
+  .detail-sec { margin-bottom: 10px; font-size: 15px; }
+  .detail-sec b { font-weight: normal; }
+  .sec-lbl { font-family: ui-monospace, Menlo, monospace; font-size: 11px; text-transform: uppercase;
+             letter-spacing: 0.1em; color: var(--muted); display: block; margin-bottom: 2px; }
+  .remedy-wrapper { margin-top: 10px; }
+  .remedy-select { font-family: Georgia, serif; font-size: 15px; padding: 7px 6px; width: 100%;
+                   border: none; border-bottom: 1px solid var(--fg); background: transparent;
+                   color: var(--fg); cursor: pointer; border-radius: 0; }
+  .remedy-detail-card { margin-top: 8px; border-left: 3px solid var(--fg); padding: 10px 14px;
+                        font-size: 14.5px; color: #333; font-style: italic; }
 
-/* Test Summary Banner Card */
-.test-banner {
-  background: var(--card);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-  padding: 1.3rem;
-  margin-bottom: 1.2rem;
-  position: relative;
-}
-.banner-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.8rem;
-  margin-bottom: 0.4rem;
-}
-.test-title {
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: #f8fafc;
-}
-.cat-badge {
-  background: #0f172a;
-  border: 1px solid var(--card-border);
-  color: var(--acc);
-  font-size: 0.75rem;
-  padding: 0.2rem 0.55rem;
-  border-radius: 6px;
-  white-space: nowrap;
-  font-weight: 500;
-}
-.test-desc {
-  color: var(--mut);
-  font-size: 0.92rem;
-  line-height: 1.5;
-  margin-bottom: 0.8rem;
-}
-.companion-hint {
-  font-size: 0.82rem;
-  color: #38bdf8;
-  background: rgba(56, 189, 248, 0.08);
-  padding: 0.45rem 0.75rem;
-  border-radius: 6px;
-  margin-bottom: 1.1rem;
-  border-left: 3px solid var(--acc);
-}
+  .toolbar { display: flex; gap: 12px; padding: 26px 0; }
+  .toolbar button, .btn {
+    display: inline-block; padding: 10px 22px; border: 2px solid var(--fg);
+    font-family: ui-monospace, Menlo, monospace; font-size: 14px;
+    text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer;
+    text-decoration: none; background: transparent; color: var(--fg);
+  }
+  .toolbar button:hover, .btn:hover { background: var(--fg); color: var(--bg); }
 
-/* Progress bar */
-.prog-wrapper {
-  margin-top: 0.9rem;
-}
-.prog-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.84rem;
-  color: var(--mut);
-  margin-bottom: 0.45rem;
-}
-.prog-pct {
-  font-weight: 600;
-  color: var(--acc);
-}
-.prog-pct.all-done {
-  color: var(--ok);
-}
-.prog-track {
-  height: 8px;
-  background: #0f172a;
-  border-radius: 9999px;
-  overflow: hidden;
-  border: 1px solid #334155;
-}
-.prog-fill {
-  height: 100%;
-  width: 0%;
-  background: linear-gradient(90deg, #38bdf8, #4ade80);
-  border-radius: 9999px;
-  transition: width 0.3s ease;
-}
+  .foot { padding: 24px 0 20px; font-size: 15px; }
+  .foot p { margin-bottom: 10px; }
+  footer { padding: 24px 0 56px; color: var(--muted); font-size: 13.5px; text-align: center;
+           font-family: ui-monospace, Menlo, monospace; }
 
-/* Action Controls Bar */
-.action-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  margin-top: 1.1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #334155;
-}
-.btn {
-  padding: 0.55rem 1rem;
-  border-radius: 8px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  cursor: pointer;
-  border: 1px solid transparent;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  transition: all 0.15s ease;
-  user-select: none;
-}
-.btn-primary {
-  background: var(--acc);
-  color: #0f172a;
-}
-.btn-primary:hover {
-  background: var(--acc-hover);
-}
-.btn-secondary {
-  background: #0f172a;
-  color: var(--txt);
-  border-color: var(--card-border);
-}
-.btn-secondary:hover {
-  border-color: var(--acc);
-  color: var(--acc);
-}
-.btn-reset {
-  background: transparent;
-  color: var(--subtle);
-  border-color: transparent;
-  margin-left: auto;
-}
-.btn-reset:hover {
-  color: var(--danger);
-}
+  .modal { position: fixed; inset: 0; background: rgba(255,255,255,.96); z-index: 40;
+           display: none; align-items: center; justify-content: center; padding: 24px; }
+  .modal.open { display: flex; }
+  .modal-inner { width: 100%; max-width: 620px; background: var(--bg); border: 2px solid var(--fg);
+                 padding: 22px; }
+  .modal h3 { font-weight: normal; font-size: 18px; margin-bottom: 12px; }
+  #summary-textarea { width: 100%; min-height: 260px; font-family: ui-monospace, Menlo, monospace;
+                      font-size: 13px; border: 1px solid var(--line); padding: 12px; resize: vertical; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 14px; }
+  .modal-actions button { padding: 9px 18px; border: 2px solid var(--fg); background: transparent;
+                          font-family: ui-monospace, Menlo, monospace; font-size: 13px;
+                          text-transform: uppercase; cursor: pointer; }
+  .modal-actions button:hover { background: var(--fg); color: var(--bg); }
 
-/* Checklist Items */
-.items-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-.item-card {
-  background: var(--card);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-  padding: 1.1rem;
-  transition: border-color 0.15s, background 0.15s;
-}
-.item-card.checked {
-  border-color: rgba(74, 222, 128, 0.4);
-  background: #17263c;
-}
-.item-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  cursor: pointer;
-  user-select: none;
-}
-.item-header:focus-visible {
-  outline: 2px solid var(--acc);
-  outline-offset: 2px;
-  border-radius: 8px;
-}
-.custom-chk {
-  margin-top: 0.15rem;
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  border: 2px solid var(--card-border);
-  background: #0f172a;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: all 0.15s ease;
-}
-.item-card.checked .custom-chk {
-  background: var(--ok);
-  border-color: var(--ok);
-  color: #0f172a;
-}
-.custom-chk svg {
-  display: none;
-  width: 14px;
-  height: 14px;
-}
-.item-card.checked .custom-chk svg {
-  display: block;
-}
-.item-title-block {
-  flex: 1;
-}
-.item-sub-badge {
-  font-size: 0.72rem;
-  color: var(--mut);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.15rem;
-}
-.item-title {
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: #f1f5f9;
-  line-height: 1.35;
-}
-.item-card.checked .item-title {
-  color: #f8fafc;
-}
-.status-pill {
-  font-size: 0.72rem;
-  padding: 0.2rem 0.5rem;
-  border-radius: 9999px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.status-pill.pending {
-  background: #253347;
-  color: var(--mut);
-}
-.status-pill.verified {
-  background: var(--ok-dim);
-  color: var(--ok);
-  border: 1px solid rgba(74, 222, 128, 0.3);
-}
+  #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+           background: var(--fg); color: var(--bg); padding: 10px 22px; font-size: 14px;
+           font-family: ui-monospace, Menlo, monospace; display: none; z-index: 50; }
+  #toast.show { display: block; }
+  .hidden { display: none; }
 
-/* Item details body */
-.item-body {
-  margin-top: 0.9rem;
-  padding-top: 0.9rem;
-  border-top: 1px solid rgba(51, 65, 85, 0.6);
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-  font-size: 0.9rem;
-}
-.detail-sec {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-.sec-lbl {
-  font-size: 0.76rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-.sec-lbl.how-lbl { color: #38bdf8; }
-.sec-lbl.thresh-lbl { color: #fbbf24; }
-.sec-lbl.remedy-lbl { color: #f472b6; }
-.sec-val {
-  color: var(--txt);
-  line-height: 1.5;
-  background: #0f172a;
-  padding: 0.65rem 0.8rem;
-  border-radius: 8px;
-  border: 1px solid #28374d;
-}
-
-/* Remedy Select Box */
-.remedy-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  background: #141f33;
-  border: 1px solid #2c3e59;
-  border-radius: 8px;
-  padding: 0.85rem;
-}
-.remedy-select {
-  width: 100%;
-  background: #0f172a;
-  border: 1px solid var(--card-border);
-  color: var(--txt);
-  padding: 0.55rem 0.75rem;
-  border-radius: 6px;
-  font-size: 0.86rem;
-  outline: none;
-  cursor: pointer;
-}
-.remedy-select:focus {
-  border-color: var(--acc);
-}
-.remedy-detail-card {
-  margin-top: 0.3rem;
-  background: #0d1525;
-  border: 1px solid #23344d;
-  border-radius: 6px;
-  padding: 0.75rem;
-  font-size: 0.85rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-.remedy-row {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-.remedy-row-title {
-  font-size: 0.74rem;
-  font-weight: 700;
-  color: var(--mut);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-.remedy-row-text {
-  color: #e2e8f0;
-  line-height: 1.45;
-}
-.thesis-quote {
-  font-style: italic;
-  color: #7dd3fc;
-  background: rgba(56, 189, 248, 0.06);
-  padding: 0.45rem 0.65rem;
-  border-radius: 4px;
-  border-left: 2px solid var(--acc);
-}
-
-/* Preview Modal / Drawer */
-.modal-backdrop {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  z-index: 100;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-}
-.modal-backdrop.open {
-  opacity: 1;
-  pointer-events: auto;
-}
-.modal-box {
-  background: var(--card);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-  width: 100%;
-  max-width: 650px;
-  max-height: 85vh;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-  overflow: hidden;
-}
-.modal-header {
-  padding: 1rem 1.2rem;
-  border-bottom: 1px solid var(--card-border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.modal-header h3 {
-  font-size: 1.15rem;
-  color: #f8fafc;
-}
-.modal-close {
-  background: transparent;
-  border: none;
-  color: var(--mut);
-  font-size: 1.3rem;
-  cursor: pointer;
-  line-height: 1;
-}
-.modal-close:hover { color: var(--txt); }
-.modal-body {
-  padding: 1.2rem;
-  overflow-y: auto;
-}
-.summary-text-area {
-  width: 100%;
-  height: 280px;
-  background: #0f172a;
-  border: 1px solid var(--card-border);
-  border-radius: 8px;
-  color: #cbd5e1;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.82rem;
-  padding: 0.85rem;
-  line-height: 1.5;
-  resize: vertical;
-  white-space: pre-wrap;
-}
-.modal-footer {
-  padding: 0.9rem 1.2rem;
-  border-top: 1px solid var(--card-border);
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.6rem;
-}
-
-/* Toast */
-.toast {
-  position: fixed;
-  bottom: 1.5rem;
-  left: 50%;
-  transform: translateX(-50%) translateY(100px);
-  background: #0369a1;
-  color: #ffffff;
-  padding: 0.6rem 1.2rem;
-  border-radius: 9999px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-  pointer-events: none;
-  opacity: 0;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  z-index: 200;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-.toast.show {
-  transform: translateX(-50%) translateY(0);
-  opacity: 1;
-}
-
-/* Footer */
-.foot {
-  margin-top: 2rem;
-  font-size: 0.85rem;
-  color: var(--mut);
-  text-align: center;
-  line-height: 1.6;
-  border-top: 1px solid #28374d;
-  padding-top: 1.5rem;
-  width: 100%;
-}
-.foot a {
-  color: var(--acc);
-  text-decoration: none;
-}
-.foot a:hover {
-  text-decoration: underline;
-}
-.foot .guide-banner {
-  background: #1e293b;
-  border: 1px solid #334155;
-  border-radius: 10px;
-  padding: 1rem 1.2rem;
-  margin-bottom: 1.2rem;
-  text-align: left;
-}
-.foot .guide-title {
-  color: #f8fafc;
-  font-weight: 600;
-  font-size: 0.95rem;
-  margin-bottom: 0.3rem;
-}
-.disclaimer-text {
-  font-size: 0.78rem;
-  color: var(--subtle);
-  margin-top: 0.8rem;
-}
-
-/* Utilities */
-.hidden { display: none !important; }
-
-/* Responsive adjustments */
-@media (max-width: 480px) {
-  body { padding: 0.8rem 0.5rem; }
-  h1 { font-size: 1.35rem; }
-  .test-title { font-size: 1.15rem; }
-  .cat-pill { padding: 0.3rem 0.65rem; font-size: 0.78rem; }
-  .action-bar { flex-direction: column; }
-  .btn-reset { margin-left: 0; }
-  .btn { width: 100%; justify-content: center; }
-  .banner-top { flex-direction: column; align-items: flex-start; }
-}
+  @media (max-width: 560px) {
+    body { font-size: 16px; }
+    .wrap, .head-rule { padding: 0 22px; }
+    h1 { font-size: 25px; }
+    header { padding: 44px 0 28px; }
+    .item-body { padding-left: 0; }
+    .toolbar { flex-direction: column; }
+    .toolbar button, .btn { display: block; width: 100%; text-align: center; }
+  }
 </style>
 </head>
 <body>
+
+<header>
+  <div class="head-rule">
+    <div class="kicker">Matakupan Labs · Free Tool · Statistical Tests</div>
+    <h1>Assumption Checklist</h1>
+    <p class="lede">Pick a test. Tick off every assumption before you run it: how to check it, the thresholds, and what to do when it fails. Free, no signup, saves progress in your browser.</p>
+  </div>
+</header>
+
 <div class="wrap">
-  <!-- Top Nav & Badge -->
-  <div class="top-nav">
-    <a href="https://fauzimatakupan.github.io/stat-test-selector/" class="back-link">
-      <span>←</span>
-      <span>Stat Test Selector</span>
-    </a>
-    <span class="tool-tag">Free Companion Tool #2</span>
+  <div class="bar-row">
+    <span class="mono-label">Progress</span>
+    <div class="prog"><div id="prog-bar"></div></div>
+    <span id="prog-count">0/0</span>
+    <span id="prog-pct">0%</span>
   </div>
 
-  <!-- Header -->
-  <h1>Statistical Assumption Checklist</h1>
-  <p class="sub">Verify empirical data requirements before running your analysis. Each test includes concrete diagnostic steps, conventional thresholds, and actionable decision paths if an assumption is violated. Saves your progress locally in your browser.</p>
-
-  <!-- Category Pills Filter -->
-  <div class="cat-pills" id="cat-pills">
-    <button class="cat-pill active" data-cat="all">All Tests</button><button class="cat-pill " data-cat="t-tests">t-Tests (3)</button><button class="cat-pill " data-cat="anova-family">ANOVA & Mixed (2)</button><button class="cat-pill " data-cat="non-parametric">Non-Parametric (5)</button><button class="cat-pill " data-cat="regression">Regression (5)</button><button class="cat-pill " data-cat="categorical">Categorical (2)</button>
-  </div>
-
-  <!-- Test Selector -->
-  <div class="selector-card">
-    <div class="picker-row">
-      <label for="test-select" class="picker-label">Choose Statistical Test (17 available):</label>
-      <select id="test-select" class="styled-select">
+  <div class="test-picker">
+    <label for="test-select">Test</label>
+    <select id="test-select" class="styled-select">
         <optgroup label="t-Tests">
           <option value="ttest1">One-Sample t-Test</option>
           <option value="ttest" selected>Independent-Samples t-Test</option>
@@ -698,90 +167,47 @@ h1 {
           <option value="mcnemar">McNemar's Test</option>
         </optgroup>
       </select>
-    </div>
   </div>
 
-  <!-- Current Test Banner -->
-  <div class="test-banner" id="test-banner">
-    <div class="banner-top">
-      <h2 class="test-title" id="t-name"></h2>
-      <span class="cat-badge" id="t-cat"></span>
-    </div>
-    <p class="test-desc" id="t-desc"></p>
-    <div class="companion-hint" id="t-companion"></div>
-
-    <div class="prog-wrapper">
-      <div class="prog-meta">
-        <span>Verified assumptions: <strong id="prog-count">0 of 5</strong></span>
-        <span class="prog-pct" id="prog-pct">0%</span>
-      </div>
-      <div class="prog-track">
-        <div class="prog-fill" id="prog-bar"></div>
-      </div>
-    </div>
-
-    <!-- Action Bar -->
-    <div class="action-bar">
-      <button class="btn btn-primary" id="btn-copy-summary">
-        <span>📋</span>
-        <span>Copy Thesis Summary</span>
-      </button>
-      <button class="btn btn-secondary" id="btn-view-summary">
-        <span>👁️</span>
-        <span>View Formatted Summary</span>
-      </button>
-      <button class="btn btn-reset" id="btn-reset-test" title="Reset checks and remedies for this test">
-        <span>↺</span>
-        <span>Reset this test</span>
-      </button>
-    </div>
+  <div class="banner">
+    <span id="t-cat"></span>
+    <div id="t-name"></div>
+    <div id="t-desc"></div>
+    <span id="t-companion"></span>
   </div>
 
-  <!-- Checklist Items List -->
-  <div class="items-list" id="items-container"></div>
+  <div id="items-container"></div>
 
-  <!-- Footer -->
-  <footer class="foot">
-    <div class="guide-banner">
-      <div class="guide-title">Looking for complete reporting templates and APA 7 sentence structures?</div>
-      <p style="color:var(--mut);font-size:0.88rem;margin-bottom:0.5rem">Pair this checklist with our companion selector and thesis survival guide.</p>
-      <p>
-        <a href="https://fauzimatakupan.github.io/stat-test-selector/" target="_blank" rel="noopener">← Statistical Test Selector (Free Tool #1)</a>
-        &nbsp;•&nbsp;
-        <a href="https://github.com/FauziMatakupan/assumption-checklist" target="_blank" rel="noopener">GitHub Project Repository</a>
-      </p>
-    </div>
-    <p>Author: <strong>F. Matakupan</strong> • Built for empirical thesis and academic research workflows.</p>
-    <p class="disclaimer-text">Educational tool, not statistical or medical advice — not a substitute for formal consultation with your thesis supervisor, academic advisor, or an accredited statistician. Diagnostic rules of thumb (e.g., VIF &lt; 5, expected cell counts ≥ 5) are conventional heuristics rather than absolute binary truths.</p>
-    <p style="margin-top:0.6rem;font-size:0.75rem;color:var(--subtle)">Zero trackers • Zero cookies • 100% client-side browser execution</p>
+  <div class="toolbar">
+    <button id="btn-view-summary">View summary</button>
+    <button id="btn-copy-summary">Copy summary</button>
+    <button id="btn-reset-test">Reset this test</button>
+  </div>
+
+  <div class="foot">
+    <p>Not sure which test fits your data? Start with the <a href="https://fauzimatakupan.github.io/stat-test-selector/">Statistical Test Selector</a>, then come back here to check your data against the test's assumptions.</p>
+  </div>
+
+  <footer>
+    Educational tool, not statistical or medical advice. Not affiliated with or endorsed by the American Psychological Association or any software vendor.<br><br>
+    <a href="https://github.com/FauziMatakupan/assumption-checklist">Source on GitHub</a> · Matakupan Labs
   </footer>
 </div>
 
-<!-- Formatted Summary Modal -->
-<div class="modal-backdrop" id="summary-modal">
-  <div class="modal-box">
-    <div class="modal-header">
-      <h3 id="modal-title">Statistical Assumption Summary</h3>
-      <button class="modal-close" id="modal-close">&times;</button>
-    </div>
-    <div class="modal-body">
-      <p style="font-size:0.85rem;color:var(--mut);margin-bottom:0.6rem">You can copy this markdown text and paste it into your thesis appendix, research notes, or supervisory consultation log:</p>
-      <textarea class="summary-text-area" id="summary-textarea" readonly></textarea>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" id="modal-btn-close">Close</button>
-      <button class="btn btn-primary" id="modal-btn-copy">Copy to Clipboard</button>
+<div class="modal" id="summary-modal">
+  <div class="modal-inner">
+    <h3>Assumption summary <button id="modal-close" style="float:right;background:none;border:none;font-size:20px;cursor:pointer;line-height:1;color:#555">×</button></h3>
+    <textarea id="summary-textarea" readonly></textarea>
+    <div class="modal-actions">
+      <button id="modal-btn-copy">Copy</button>
+      <button id="modal-btn-close">Close</button>
     </div>
   </div>
 </div>
-
-<!-- Toast Message -->
-<div class="toast" id="toast">
-  <span>✓</span>
-  <span id="toast-msg">Copied to clipboard!</span>
-</div>
+<div id="toast"><span id="toast-msg"></span></div>
 
 <script>
+
 const DB = [
   {
     "id": "ttest1",
@@ -2932,6 +2358,7 @@ loadState();
 setupEvents();
 renderBanner();
 renderItems();
+
 </script>
 </body>
 </html>
